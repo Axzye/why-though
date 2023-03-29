@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73bacbf823e10264f8d08cad2785530c, type: 3}
+  m_Name: Kabbu
+  m_EditorClassIdentifier: 
+  stats:
+    id: 1
+    skills:
+    - _name: Cut
+      icon: {fileID: -257777989, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 0.5
+      cost: 0
+    - _name: 
+      icon: {fileID: 339371275, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 0
+      cost: 0
+    - _name: 
+      icon: {fileID: 1703259549, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 0
+      cost: 0
+    gunA: {fileID: -2058462022, guid: d43617fdff0278a4e92fda802aa0cf57, type: 3}
+    gunB: {fileID: -1349084808, guid: d43617fdff0278a4e92fda802aa0cf57, type: 3}
+    fireClip:
+      clip: {fileID: 8300000, guid: 7bb01e04219859145a4cbc1da38d9de4, type: 3}
+      clipRandom: []
+      volume: 0.25
+      pitch: 1
+      pitchVar: 0
+    relStartClip:
+      clip: {fileID: 0}
+      clipRandom: []
+      volume: 0.5
+      pitch: 1
+      pitchVar: 0
+    relEndClip:
+      clip: {fileID: 8300000, guid: 25f3397d7a642fd45aead68b33ba5b2d, type: 3}
+      clipRandom: []
+      volume: 0.5
+      pitch: 1
+      pitchVar: 0
+    switchToClip:
+      clip: {fileID: 8300000, guid: df00d9c3be645cd4bba806f749f58587, type: 3}
+      clipRandom: []
+      volume: 0.2
+      pitch: 1
+      pitchVar: 0
+    animation: {fileID: 22100000, guid: 77a3b1bdbbc55ad4097c87b3f303d776, type: 2}
+    clip:
+      value: 2
+      max: 4
+    fireCooldown: 0.625
+    relCooldown: 0.4
+    reloadAll: 0
+    reloading: 0
+    reloadTime: 0
+    flashAmt: 0.15
+    recAmt: 1.5
+    projectile: {fileID: 4604602764669399281, guid: 5ce43f15afe466041a3d0335a4e5ff3a, type: 3}
+    infBase:
+      damage: 1
+      knockback: 1.5
+      alwaysKnockback: 0
+      addForce: {x: 0, y: 0}
+      iFrames: 0
+      crit: 0
+      ignoreIFrames: 0
+      noKill: 0
+    se:
+    - 0
+    - 0
+    - 0

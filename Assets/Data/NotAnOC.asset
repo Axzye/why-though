@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e7ddf1794a2c0489b2a38631e98473, type: 3}
+  m_Name: NotAnOC
+  m_EditorClassIdentifier: 
+  _name: Axye
+  color: {r: 0.9529412, g: 0.59184384, b: 0.1568627, a: 1}
+  sound:
+    clip: {fileID: 8300000, guid: e4085a2ddb877394ba8c036e7a80f3d5, type: 3}
+    clipRandom: []
+    volume: 0.5
+    pitch: 1
+    pitchVar: 0
+  spriteset:
+  - {fileID: 683560109, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 295663340, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 492878327, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 289608851, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -4869750, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -1444959494, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -398852017, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -1215868272, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 986130131, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -1901874535, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 2025840949, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -112865376, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -1542278679, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -1931504488, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 1342371696, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -290129191, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -631539826, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -181688755, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: -732795602, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 1732073760, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 1242705170, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 692624215, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 1073642874, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}
+  - {fileID: 23331023, guid: ee06a8e302b8af448be1ceb69954e306, type: 3}

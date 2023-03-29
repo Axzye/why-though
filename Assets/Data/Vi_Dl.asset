@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e7ddf1794a2c0489b2a38631e98473, type: 3}
+  m_Name: Vi_Dl
+  m_EditorClassIdentifier: 
+  _name: Vi
+  color: {r: 0.99215686, g: 0.7695262, b: 0.21960784, a: 1}
+  sound:
+    clip: {fileID: 8300000, guid: 1ec345d1dc2562b4abd8955ec808f9ba, type: 3}
+    clipRandom: []
+    volume: 0.5
+    pitch: 1.3
+    pitchVar: 0.05
+  spriteset:
+  - {fileID: -572222638, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1024933616, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1613972241, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 478161031, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1047083487, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 47870710, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1757662958, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 837860520, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1025948684, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1362312976, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -187612165, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1683555228, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 2010411200, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -699213452, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1654513618, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1940751881, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 564531778, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 852416034, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1508663845, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1408946925, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1155418441, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1119079148, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: -1577866756, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}
+  - {fileID: 1651679062, guid: 8868f71edd2f5204fbc551b4dc10d43a, type: 3}

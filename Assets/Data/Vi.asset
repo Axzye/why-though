@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73bacbf823e10264f8d08cad2785530c, type: 3}
+  m_Name: Vi
+  m_EditorClassIdentifier: 
+  stats:
+    id: 0
+    skills:
+    - _name: Hurricane Toss
+      icon: {fileID: -1547710027, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 2
+      cost: 0
+    - _name: Coin Flip
+      icon: {fileID: -405838411, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 2.5
+      cost: 1
+    - _name: Heal
+      icon: {fileID: 1592763381, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
+      cooldown: 5
+      cost: 3
+    gunA: {fileID: -185015643, guid: d43617fdff0278a4e92fda802aa0cf57, type: 3}
+    gunB: {fileID: -2130793794, guid: d43617fdff0278a4e92fda802aa0cf57, type: 3}
+    fireClip:
+      clip: {fileID: 8300000, guid: 17aa4a0f6f66cf24ebe9db20a4abbe5c, type: 3}
+      clipRandom: []
+      volume: 0.18
+      pitch: 1
+      pitchVar: 0
+    relStartClip:
+      clip: {fileID: 8300000, guid: 7e33fac11a635334a8b99ac005417661, type: 3}
+      clipRandom: []
+      volume: 0.5
+      pitch: 1
+      pitchVar: 0
+    relEndClip:
+      clip: {fileID: 8300000, guid: 45500b4608f4e7f4fa2aa66eb2b50b1a, type: 3}
+      clipRandom: []
+      volume: 0.5
+      pitch: 1
+      pitchVar: 0
+    switchToClip:
+      clip: {fileID: 8300000, guid: 2c05e02b199435147a424fa1d7eca4de, type: 3}
+      clipRandom: []
+      volume: 0.2
+      pitch: 1
+      pitchVar: 0
+    animation: {fileID: 9100000, guid: 7f13251fae228ad49ad45c269baed40a, type: 2}
+    clip:
+      value: 8
+      max: 8
+    fireCooldown: 0.15
+    relCooldown: 0.65
+    reloadAll: 1
+    reloading: 0
+    reloadTime: 0
+    flashAmt: 0.15
+    recAmt: 1
+    projectile: {fileID: 4604602764669399281, guid: 5ce43f15afe466041a3d0335a4e5ff3a, type: 3}
+    infBase:
+      damage: 1
+      knockback: 1
+      alwaysKnockback: 0
+      addForce: {x: 0, y: 0}
+      iFrames: 0
+      crit: 0
+      ignoreIFrames: 0
+      noKill: 0
+    se:
+    - 0
+    - 0
+    - 0
