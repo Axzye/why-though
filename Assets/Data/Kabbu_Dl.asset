@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Kabbu_Dl
   m_EditorClassIdentifier: 
   _name: Kabbu
-  color: {r: 0.20803669, g: 0.8018868, b: 0.24853025, a: 1}
+  color: {r: 0.19032574, g: 0.8584906, b: 0.23805177, a: 1}
   sound:
     clip: {fileID: 8300000, guid: 1ec345d1dc2562b4abd8955ec808f9ba, type: 3}
     clipRandom: []

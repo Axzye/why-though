@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vi_Dl
   m_EditorClassIdentifier: 
   _name: Vi
-  color: {r: 0.99215686, g: 0.7695262, b: 0.21960784, a: 1}
+  color: {r: 0.9622642, g: 0.8091518, b: 0.30411178, a: 1}
   sound:
     clip: {fileID: 8300000, guid: 1ec345d1dc2562b4abd8955ec808f9ba, type: 3}
     clipRandom: []

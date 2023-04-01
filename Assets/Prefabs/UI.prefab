@@ -394,8 +394,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 28, y: -11}
-  m_SizeDelta: {x: 230, y: 14}
+  m_AnchoredPosition: {x: -55, y: -11}
+  m_SizeDelta: {x: 64, y: 14}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7022486280293678599
 CanvasRenderer:
@@ -435,7 +435,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4280556314
-  m_fontColor: {r: 0.102127075, g: 0.10569335, b: 0.14150941, a: 1}
+  m_fontColor: {r: 0.101960786, g: 0.105882354, b: 0.14117648, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1167,7 +1167,7 @@ GameObject:
   - component: {fileID: 1859767815810051418}
   - component: {fileID: 8988464949304230672}
   m_Layer: 5
-  m_Name: Centre
+  m_Name: IconContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1536,7 +1536,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8396226, g: 0.6444858, b: 0.4237718, a: 1}
+  m_Color: {r: 0.9716981, g: 0.73603797, b: 0.47209862, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
