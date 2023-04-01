@@ -76,9 +76,10 @@ public class Player : Entity
     private float noControlTime;
     private float flyTime = 1f;
     private bool flying;
-    private float dashTime;
+    private float dashCooldown, dashTime;
     private bool dashDir;
     private bool dashFx;
+
     // spaghetti code!
     public float damageTime;
     public float iFrames;
@@ -166,6 +167,7 @@ public class Player : Entity
         Utils.TimeDown(ref damageTime);
         Utils.TimeDown(ref iFrames);
         Utils.TimeDown(ref notOnGroundTime);
+        Utils.TimeDown(ref dashCooldown);
         if (Utils.TimeDownTick(ref healWait))
             Heal(5, false);
 
@@ -196,18 +198,19 @@ public class Player : Entity
         if (onGround)
         {
             RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
-
-            if (hit.collider && Mathf.Abs(hit.normal.x) > 0.1f)
+            if (hit.collider)
             {
                 lastTouchedGround = transform.position;
+                /*if (Mathf.Abs(hit.normal.x) > 0.1f)
+                {
+                    // Apply the opposite force against the slope force 
+                    vel.x -= hit.normal.x * slopeCorrect;
 
-                // Apply the opposite force against the slope force 
-                vel.x -= hit.normal.x * slopeCorrect;
-
-                //Move Player up or down to compensate for the slope below them
-                Vector3 pos = transform.position;
-                pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
-                transform.position = pos;
+                    //Move Player up or down to compensate for the slope below them
+                    Vector3 pos = transform.position;
+                    pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
+                    transform.position = pos;
+                }*/
             }
         }
 
@@ -235,7 +238,7 @@ public class Player : Entity
             crouching = false;
         }
 
-        if (Utils.TimeDown(ref inJumpBuffer) || inSkillA)
+        if (Utils.TimeDown(ref inJumpBuffer))// || (inSkillA && party.current == Mb.Vi))
         {
             GJump();
         }
@@ -269,11 +272,14 @@ public class Player : Entity
                 }
                 if (inSkillA)
                 {
-                    AudioManager.Play(clips[4]);
-                    dashTime = 0.15f;
-
-                    noControlTime = 0.15f;
-                    dashDir = facing;
+                    if (dashCooldown == 0f)
+                    {
+                        AudioManager.Play(clips[4]);
+                        dashTime = 0.15f;
+                        dashCooldown = 0.4f;
+                        noControlTime = 0.15f;
+                        dashDir = facing;
+                    }
                 }
                 break;
             case Mb.Leif:
@@ -353,12 +359,19 @@ public class Player : Entity
             && noControlTime == 0f)
         {
             flying = true;
-
-            vel.y *= 0.94f;
-            if (vel.y < 0f)
+            if (onGround)
             {
-                vel.y += 15f * Time.deltaTime;
-                if (vel.y > 0f) vel.y = 0f;
+                vel.y = 6f;
+                notOnGroundTime = 0.1f;
+            }
+            else
+            {
+                vel.y *= 0.94f;
+                if (vel.y < 0f)
+                {
+                    vel.y += 15f * Time.deltaTime;
+                    if (vel.y > 0f) vel.y = 0f;
+                }
             }
 
             if (!audioEx.isPlaying) audioEx.Play();
@@ -386,7 +399,7 @@ public class Player : Entity
                 if (wallSliding)
                 {
                     rb.gravityScale = 0.1f;
-                    gravityCap *= 0.2f;
+                    gravityCap = 3f;
                 }
             }
         }
@@ -399,11 +412,11 @@ public class Player : Entity
             AudioManager.Play(clips[11]);
             ResetPos();
         }
-        else if (transform.position.y > 10.5f)
+        /*else if (transform.position.y > 10.5f)
         {
             transform.position = new(transform.position.x, 10.5f);
             vel.y = 0f;
-        }
+        }*/
 
         // finally, update with new velocity
         rb.velocity = vel;
@@ -652,7 +665,7 @@ public class Player : Entity
             // TEMP
             party.hp.Add(99);
             party.tp.Add(99);
-            ResetPos();
+            //ResetPos();
         }
 
         GameManager.Spawn(damageNumber, transform.position + Vector3.up * 0.75f)

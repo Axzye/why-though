@@ -69,7 +69,7 @@ public class FollowCamera : MonoBehaviour
 
         Vector3 moveTarg = (playerPos + focusPos) * 0.5f;
         moveTarg.z = -8f;
-        moveTarg.y = Mathf.Clamp(moveTarg.y, -2f, 5f);
+        moveTarg.y = Mathf.Max(moveTarg.y, -2f);//, 5f);
 
         transform.position = Vector3.SmoothDamp(transform.position, moveTarg, ref moveCur, moveST);
 
