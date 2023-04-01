@@ -139,7 +139,6 @@ public class DialogueManager : MonoSingleton<DialogueManager>
 
         dbText.text = "";
         dbNameText.text = pageCurrent.speaker._name;
-        dbNameText.color = pageCurrent.speaker.color;
         SetIcon(0);
 
         imageSquish = 0.1f;
