@@ -41,7 +41,6 @@ public class PauseMenu : MonoBehaviour
             AudioManager.Play(unClip);
             animate.CrossFade(False, 0f);
 
-            Time.timeScale = 1f;
             GameManager.paused = false;
         }
         else
@@ -49,7 +48,6 @@ public class PauseMenu : MonoBehaviour
             AudioManager.Play(clip);
             animate.CrossFade(True, 0f);
 
-            Time.timeScale = 0f;
             GameManager.paused = true;
         }
     }

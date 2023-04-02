@@ -3,7 +3,6 @@ using UnityEngine;
 public class GameManager : MonoSingleton<GameManager>
 {
     public static bool paused;
-    public static bool CanMove => !paused && !DialogueManager.inDlMode;
     private static float freezeTime;
 
     protected override void Awake()
@@ -21,7 +20,11 @@ public class GameManager : MonoSingleton<GameManager>
 
     private void Update()
     {
-        if (!CanMove) return;
+        if (paused || DialogueManager.inDlMode)
+        {
+            Time.timeScale = 0f;
+            return;
+        }
 
         if (Utils.TimeDown(ref freezeTime, Time.unscaledDeltaTime))
         {
