@@ -216,27 +216,21 @@ public class Player : Entity
 
         if (onGround)
         {
-            // check for crouch
             if (inCrouch)
             {
                 if (!crouching)
-                {
-                    // crouch
-                    playerBody.scale.y = 0.8f;
-                    crouching = true;
-                }
+                playerBody.scale.y = 0.8f;
+                crouching = true;
             }
-            else
-            {
-                if (crouching)
-                    crouching = false;
-            }
+            else if (crouching)
+                crouching = false;
         }
         else
         {
-            // if in air, don't crouch
             crouching = false;
         }
+
+        if (crouching) inMove = 0f;
 
         if (Utils.TimeDown(ref inJumpBuffer))// || (inSkillA && party.current == Mb.Vi))
         {
@@ -698,8 +692,8 @@ public class Player : Entity
                 && party.tp >= skill.cost)
             {
                 skill.time = skill.cooldown;
-                if (skill.cost > 0)
-                    party.tp.Add(-skill.cost);
+                //if (skill.cost > 0)
+                //    party.tp.Add(-skill.cost);
                 return true;
             }
             else
