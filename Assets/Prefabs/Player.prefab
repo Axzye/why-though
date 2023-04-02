@@ -5233,7 +5233,7 @@ MonoBehaviour:
   speed: 5.5
   airSmooth: 0.2
   jumpForce: 11
-  maxGrav: 30
+  maxGrav: 20
   maxFlyTime: 2
   setCoyoteTime: 0.08
   slopeCorrect: 0.5
