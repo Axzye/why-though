@@ -111,7 +111,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Sliding
+  m_Name: Wallslide
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -221,37 +221,40 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 6354903722328427448}
-    m_Position: {x: 290, y: -140, z: 0}
+    m_Position: {x: 290, y: -40, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4873500967114351793}
-    m_Position: {x: 290, y: -90, z: 0}
+    m_Position: {x: 510, y: 10, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2037169410358401120}
-    m_Position: {x: 290, y: -340, z: 0}
+    m_Position: {x: 510, y: -90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8331324856896956752}
-    m_Position: {x: 290, y: -240, z: 0}
+    m_Position: {x: 730, y: 60, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -8562545258473185830}
     m_Position: {x: 290, y: 60, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9136203278466953307}
-    m_Position: {x: 290, y: -40, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: 1731469486366168795}
-    m_Position: {x: 290, y: -390, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: -5834445087754335453}
     m_Position: {x: 290, y: 10, z: 0}
   - serializedVersion: 1
+    m_State: {fileID: 1731469486366168795}
+    m_Position: {x: 730, y: -90, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -5834445087754335453}
+    m_Position: {x: 510, y: 60, z: 0}
+  - serializedVersion: 1
     m_State: {fileID: -3441146764540146856}
-    m_Position: {x: 290, y: -190, z: 0}
+    m_Position: {x: 730, y: 10, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -7443552186655023417}
-    m_Position: {x: 290, y: -440, z: 0}
+    m_Position: {x: 950, y: -90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4435760631819046701}
-    m_Position: {x: 290, y: -290, z: 0}
+    m_Position: {x: 290, y: -90, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 8630737018754259488}
+    m_Position: {x: 510, y: -40, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -335,6 +338,32 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7400000, guid: 523d8aeb308f64442acb68949f3f5d97, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &8630737018754259488
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Slide
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: f2d81717457a1c44c89f651546e0cf3a, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

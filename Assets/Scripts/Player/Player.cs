@@ -15,7 +15,7 @@ public class Player : Entity
     public float maxFlyTime = 1f;
     public float setCoyoteTime = 0.08f;
     public float slopeCorrect = 0.5f;
-    public float slideMult = 1.5f;
+    public float slideMult = 1.5f, slideSpeedLoss = 0.2f;
     public Rect gCheck = new(new(0f, -0.5f), new(0.42f, 0.1f));
 
     [Space]
@@ -228,7 +228,7 @@ public class Player : Entity
                     playerBody.scale.y = 0.8f;
                     crouching = true;
                     sliding = true;
-                    slideStoredVel = Mathf.Max(speed, Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                    slideStoredVel = speed * slideMult * Mathf.Round(inMove); //Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
                 }
             }
             else if (crouching)
@@ -242,7 +242,7 @@ public class Player : Entity
             crouching = false;
         }
 
-        if (Utils.TimeDown(ref inJumpBuffer))// || (inSkillA && party.current == Mb.Vi))
+        if (Utils.TimeDown(ref inJumpBuffer))
         {
             GJump();
         }
@@ -316,23 +316,29 @@ public class Player : Entity
 
         if (onGround)
         {
-            if (noControlTime == 0f)
-            {
-                vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
-                    Mathf.Abs(targetX) > 0f ? groundSmooth : groundSmooth * 0.5f,
-                    Mathf.Infinity, Time.deltaTime);
-            }
+            if (crouching) targetX *= 0.5f;
 
-            if (targetX != 0f)
+            if (!sliding)
             {
-                fsCycle += Time.deltaTime * 3f;
-                if (fsCycle > 1f)
+                if (noControlTime == 0f)
                 {
-                    fsCycle = 0f;
-                    AudioManager.Play(footstepClips);
-                    fsFx.Emit(1);
+                    vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
+                        Mathf.Abs(targetX) > 0f ? groundSmooth : groundSmooth * 0.5f,
+                        Mathf.Infinity, Time.deltaTime);
+                }
+
+                if (targetX != 0f)
+                {
+                    fsCycle += Time.deltaTime * 3f;
+                    if (fsCycle > 1f)
+                    {
+                        fsCycle = 0f;
+                        AudioManager.Play(footstepClips);
+                        fsFx.Emit(1);
+                    }
                 }
             }
+
             coyoteTime = setCoyoteTime;
             canEndJump = true;
             doubleJump = true;
@@ -343,6 +349,7 @@ public class Player : Entity
         }
         else
         {
+            sliding = false;
             if (noControlTime == 0f)
             {
                 vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
@@ -415,7 +422,7 @@ public class Player : Entity
 
         // TEMP
         if (sliding) vel.x = slideStoredVel;
-        slideStoredVel += slideStoredVel > 0f ? -0.1f : 0.1f;
+        slideStoredVel += slideSpeedLoss * (slideStoredVel > 0f ? -1f : 1f);
         if (Mathf.Abs(slideStoredVel) <= 2f)
         {
             sliding = false;
@@ -508,7 +515,7 @@ public class Player : Entity
 
             switch (type)
             {
-                case 0 when dashTime > 0f:
+                case 0 when dashTime > 0f || sliding:
                     AudioManager.Play(clips[17]);
                     vel.x = (facing ? 1f : -1f) * 10f;
                     vel.y *= 0.7f;
@@ -673,6 +680,8 @@ public class Player : Entity
             damageTime = 0.25f;
             AudioManager.Play(clips[8]);
         }
+
+        sliding = false;
 
         if (party.hp <= 0)
         {

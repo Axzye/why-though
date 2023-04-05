@@ -5238,6 +5238,7 @@ MonoBehaviour:
   setCoyoteTime: 0.08
   slopeCorrect: 0.5
   slideMult: 1.5
+  slideSpeedLoss: 0.2
   gCheck:
     serializedVersion: 2
     x: 0
@@ -10506,7 +10507,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2478079133230236462
 Transform:
   m_ObjectHideFlags: 0
