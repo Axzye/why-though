@@ -416,7 +416,7 @@ public class Player : Entity
         // TEMP
         if (sliding) vel.x = slideStoredVel;
         slideStoredVel += slideStoredVel > 0f ? -0.1f : 0.1f;
-        if (Mathf.Abs(slideStoredVel) <= 1f)
+        if (Mathf.Abs(slideStoredVel) <= 2f)
         {
             sliding = false;
         }
@@ -455,7 +455,7 @@ public class Player : Entity
         else
             sr.color = Color.white;
 
-        playerBody.snapToFacing = wallSliding || dashTime > 0f;
+        playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
 
         int state = GetAnimationState();
         if (Time.time > lockedUntil && currentState != state)
