@@ -80,16 +80,7 @@ public class Weapon : MonoBehaviour
         mousePos = Mouse.current.position.ReadValue() - (Vector2)main.WorldToScreenPoint(transform.position);
         angle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
 
-        if (!flipped)
-        {
-            if (angle > 95f || angle < -95f)
-                flipped = true;
-        }
-        else
-        {
-            if (angle < 85f && angle > -85f)
-                flipped = false;
-        }
+        flipped = (Mathf.Abs(angle) > 90f);
 
         if (thrown)
         {
@@ -101,7 +92,6 @@ public class Weapon : MonoBehaviour
         {
             float yOffset = 0f;
             if (current.id != Mb.Leif) yOffset = -0.0625f;
-            if (player.crouching) yOffset -= 0.125f;
             transform.localPosition = Vector3.up * yOffset;
 
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
