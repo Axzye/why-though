@@ -15,6 +15,7 @@ public class Player : Entity
     public float maxFlyTime = 1f;
     public float setCoyoteTime = 0.08f;
     public float slopeCorrect = 0.5f;
+    public float slideMult = 1.5f;
     public Rect gCheck = new(new(0f, -0.5f), new(0.42f, 0.1f));
 
     [Space]
@@ -45,7 +46,8 @@ public class Player : Entity
         Jump = Animator.StringToHash("Jump"),
         Fall = Animator.StringToHash("Fall"),
         Crouch = Animator.StringToHash("Crouch"),
-        Sliding = Animator.StringToHash("Sliding"),
+        Slide = Animator.StringToHash("Slide"),
+        Wallslide = Animator.StringToHash("Wallslide"),
         Hurt = Animator.StringToHash("Hurt"),
         SkillA = Animator.StringToHash("SkillA"),
         Skill0 = Animator.StringToHash("Skill0"),
@@ -58,8 +60,11 @@ public class Player : Entity
 
     private bool onGround = true;
     private bool wasOnGround;
-    private int onWall;
+
+    private bool sliding;
+    private float slideStoredVel;
     private bool wallSliding;
+    private int wallSlideDir;
 
     private float targetX;
     public bool crouching;
@@ -214,23 +219,28 @@ public class Player : Entity
             }
         }
 
-        if (onGround)
+        if (onGround && noControlTime == 0f)
         {
             if (inCrouch)
             {
                 if (!crouching)
-                playerBody.scale.y = 0.8f;
-                crouching = true;
+                {
+                    playerBody.scale.y = 0.8f;
+                    crouching = true;
+                    sliding = true;
+                    slideStoredVel = Mathf.Max(speed, Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                }
             }
             else if (crouching)
+            {
                 crouching = false;
+                sliding = false;
+            }
         }
         else
         {
             crouching = false;
         }
-
-        if (crouching) inMove = 0f;
 
         if (Utils.TimeDown(ref inJumpBuffer))// || (inSkillA && party.current == Mb.Vi))
         {
@@ -287,19 +297,19 @@ public class Player : Entity
         }
 
         // check for wall collision
-        onWall = 0;
+        wallSlideDir = 0;
 
         // boiler plate code...
         if (Physics2D.OverlapBox((Vector2)transform.position
             + new Vector2(-0.24f, -0.35f),
             new(0.1f, 0.2f), 0f, 1))
-            onWall = -1;
+            wallSlideDir = -1;
         else if (Physics2D.OverlapBox((Vector2)transform.position
             + new Vector2(0.24f, -0.35f),
             new(0.1f, 0.2f), 0f, 1))
-            onWall = 1;
+            wallSlideDir = 1;
 
-        wallSliding = onWall != 0 && inMove != 0f && vel.y <= 0f && !onGround;
+        wallSliding = wallSlideDir != 0 && inMove != 0f && vel.y <= 0f && !onGround;
 
         // find target velocity
         targetX = inMove * speed;
@@ -312,6 +322,7 @@ public class Player : Entity
                     Mathf.Abs(targetX) > 0f ? groundSmooth : groundSmooth * 0.5f,
                     Mathf.Infinity, Time.deltaTime);
             }
+
             if (targetX != 0f)
             {
                 fsCycle += Time.deltaTime * 3f;
@@ -326,7 +337,7 @@ public class Player : Entity
             canEndJump = true;
             doubleJump = true;
             canRecoil = true;
-            onWall = 0;
+            wallSlideDir = 0;
             flyTime = maxFlyTime;
             if (audioEx.isPlaying) audioEx.Stop();
         }
@@ -376,6 +387,10 @@ public class Player : Entity
 
         rb.gravityScale = 1f;
         gravityCap = maxGrav;
+        if (inCrouch)
+        {
+            gravityCap += 5f;
+        }
 
         if (flying || dashTime > 0.05f)
             rb.gravityScale = 0f;
@@ -396,6 +411,14 @@ public class Player : Entity
                     gravityCap = 3f;
                 }
             }
+        }
+
+        // TEMP
+        if (sliding) vel.x = slideStoredVel;
+        slideStoredVel += slideStoredVel > 0f ? -0.1f : 0.1f;
+        if (Mathf.Abs(slideStoredVel) <= 1f)
+        {
+            sliding = false;
         }
 
         if (vel.y < -gravityCap)
@@ -455,13 +478,14 @@ public class Player : Entity
 
             if (onGround)
             {
+                if (sliding) return Slide;
                 if (crouching) return Crouch;
                 if (Mathf.Abs(targetX) > 0f) return Walk;
             }
             else
             {
                 if (rb.velocity.y > 0f) return Jump;
-                else return wallSliding ? Sliding : Fall;
+                else return wallSliding ? Wallslide : Fall;
             }
             return Idle;
         }
@@ -471,7 +495,7 @@ public class Player : Entity
             int type;
             if (onGround || coyoteTime > 0f)
                 type = 0;
-            else if (onWall != 0)
+            else if (wallSlideDir != 0)
                 type = 1;
             else if (doubleJump)
                 type = 2;
@@ -496,7 +520,7 @@ public class Player : Entity
                     break;
                 case 1:
                     AudioManager.Play(clips[1]);
-                    vel.x = 6f * -onWall;
+                    vel.x = 6f * -wallSlideDir;
                     vel.y -= 1f;
                     // neutral jump (celeste reference ?!)
                     noControlTime = inMove == 0f ? 0.05f : 0.15f;

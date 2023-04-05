@@ -5233,10 +5233,11 @@ MonoBehaviour:
   speed: 5.5
   airSmooth: 0.2
   jumpForce: 11
-  maxGrav: 20
+  maxGrav: 15
   maxFlyTime: 2
   setCoyoteTime: 0.08
   slopeCorrect: 0.5
+  slideMult: 1.5
   gCheck:
     serializedVersion: 2
     x: 0
