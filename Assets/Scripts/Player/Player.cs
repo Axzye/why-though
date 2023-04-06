@@ -31,7 +31,8 @@ public class Player : Entity
         actionText;
     public PlayerBody playerBody;
     public Weapon weapon;
-    public AudioSource audioEx;
+    // TODO: Implement proper looping audio system
+    public AudioSource audioEx, audioSldEx;
     public ParticleSystem fsFx;
     public BubbleShield shield;
     private Party party;
@@ -199,49 +200,6 @@ public class Player : Entity
             }
         }
 
-        // Attempt vertical normalization
-        if (onGround)
-        {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
-            if (hit.collider)
-            {
-                lastTouchedGround = transform.position;
-                /*if (Mathf.Abs(hit.normal.x) > 0.1f)
-                {
-                    // Apply the opposite force against the slope force 
-                    vel.x -= hit.normal.x * slopeCorrect;
-
-                    //Move Player up or down to compensate for the slope below them
-                    Vector3 pos = transform.position;
-                    pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
-                    transform.position = pos;
-                }*/
-            }
-        }
-
-        if (onGround && noControlTime == 0f)
-        {
-            if (inCrouch)
-            {
-                if (!crouching)
-                {
-                    playerBody.scale.y = 0.8f;
-                    crouching = true;
-                    sliding = true;
-                    slideStoredVel = speed * slideMult * Mathf.Round(inMove); //Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
-                }
-            }
-            else if (crouching)
-            {
-                crouching = false;
-                sliding = false;
-            }
-        }
-        else
-        {
-            crouching = false;
-        }
-
         if (Utils.TimeDown(ref inJumpBuffer))
         {
             GJump();
@@ -297,9 +255,6 @@ public class Player : Entity
         }
 
         // check for wall collision
-        wallSlideDir = 0;
-
-        // boiler plate code...
         if (Physics2D.OverlapBox((Vector2)transform.position
             + new Vector2(-0.24f, -0.35f),
             new(0.1f, 0.2f), 0f, 1))
@@ -308,6 +263,8 @@ public class Player : Entity
             + new Vector2(0.24f, -0.35f),
             new(0.1f, 0.2f), 0f, 1))
             wallSlideDir = 1;
+        else
+            wallSlideDir = 0;
 
         wallSliding = wallSlideDir != 0 && inMove != 0f && vel.y <= 0f && !onGround;
 
@@ -317,6 +274,54 @@ public class Player : Entity
         if (onGround)
         {
             if (crouching) targetX *= 0.5f;
+
+            // attempt vertical normalisation
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
+            if (hit.collider)
+            {
+                lastTouchedGround = transform.position;
+                /*if (Mathf.Abs(hit.normal.x) > 0.1f)
+                {
+                    // Apply the opposite force against the slope force 
+                    vel.x -= hit.normal.x * slopeCorrect;
+
+                    //Move Player up or down to compensate for the slope below them
+                    Vector3 pos = transform.position;
+                    pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
+                    transform.position = pos;
+                }*/
+            }
+            
+            // Sliding & crouching
+            if (noControlTime > 0f)
+            {
+                // Cancel crouch
+                crouching = false;
+            }
+            else
+            {
+                if (inCrouch)
+                {
+                    // Start crouch
+                    if (!crouching)
+                    {
+                        playerBody.scale.y = 0.8f;
+                        crouching = true;
+                        if (inMove != 0f)
+                        {
+                            sliding = true;
+                            slideStoredVel = speed * slideMult * Mathf.Round(inMove); 
+                            //Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                            audioSldEx.Play();
+                        }
+                    }
+                }
+                else if (crouching)
+                {
+                    crouching = false;
+                    sliding = false;
+                }
+            }
 
             if (!sliding)
             {
@@ -338,14 +343,13 @@ public class Player : Entity
                     }
                 }
             }
-
+            // Reset variables on ground
             coyoteTime = setCoyoteTime;
             canEndJump = true;
             doubleJump = true;
             canRecoil = true;
             wallSlideDir = 0;
             flyTime = maxFlyTime;
-            if (audioEx.isPlaying) audioEx.Stop();
         }
         else
         {
@@ -390,7 +394,6 @@ public class Player : Entity
 
             Utils.TimeDown(ref flyTime);
         }
-        else if (audioEx.isPlaying) audioEx.Stop();
 
         rb.gravityScale = 1f;
         gravityCap = maxGrav;
@@ -455,8 +458,7 @@ public class Player : Entity
         if (noControlTime > 0f) sr.color = Color.yellow;
         if (dashTime > 0f) sr.color = Color.blue;
         */
-
-        // huh?
+        
         if (iFrames > 0f && dashTime == 0f)
             sr.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
         else
@@ -469,6 +471,19 @@ public class Player : Entity
         {
             animator.CrossFade(state, 0f);
             currentState = state;
+        }
+
+        // stop looping
+        if (!flying)
+        {
+            if (audioEx.isPlaying)
+                audioEx.Stop();
+        }
+
+        if (!sliding)
+        {
+            if (audioSldEx.isPlaying)
+                audioSldEx.Stop();
         }
 
         // reset input
@@ -640,6 +655,7 @@ public class Player : Entity
     public override bool Damage(DamageInfo inf)
     {
         if (iFrames > 0f && !inf.ignoreIFrames) return false;
+        if (sliding) return false;
 
         // this is quite generous
         iFrames = 1f;
@@ -763,7 +779,6 @@ public class Player : Entity
 
             weapon.SwitchAlly();
 
-            audioEx.Stop();
             currentState = Idle;
             animator.runtimeAnimatorController = party.Cur.animation;
             iFrames = 0.1f; // sure hope this won't cause any problems

@@ -90,8 +90,8 @@ public class Weapon : MonoBehaviour
         }
         else
         {
-            float yOffset = 0f;
-            if (current.id != Mb.Leif) yOffset = -0.0625f;
+            float yOffset = -0.0625f;
+            if (player.crouching) yOffset = -0.375f;
             transform.localPosition = Vector3.up * yOffset;
 
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
