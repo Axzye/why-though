@@ -1,14 +1,17 @@
 using UnityEngine;
 
-public class NPC : DialogueTrigger
+[RequireComponent(typeof(DialogueTrigger))]
+public class NPC : Interactable
 {
+    private DialogueTrigger dl;
     private SpriteRenderer indicator;
-    private InputMaster input;
     private LayerMask playerLayer = 64;
 
-    private void Awake()
+    protected override void Awake()
     {
-        input = new();
+        base.Awake();
+        dl = GetComponent<DialogueTrigger>();
+
         Sprite indS = Resources.Load<Sprite>("Sprites/UI/button_f");
         GameObject indNew = new();
         indNew.transform.parent = transform;
@@ -20,15 +23,16 @@ public class NPC : DialogueTrigger
     private void OnEnable() => input.Player.Enable();
     private void OnDisable() => input.Player.Disable();
 
-    public void Update()
+    public void FixedUpdate()
     {
         indicator.enabled = false;
         if (Physics2D.OverlapCircle(transform.position, 0.75f, playerLayer))
         {
             indicator.enabled = true;
+            indicator.transform.localPosition = (Mathf.Sin(Time.time * Mathf.PI * 0.5f) * (1f / 16f) + 1f)  * Vector2.up;
             if (input.Player.Use.triggered)
             {
-                Trigger();
+                dl.Trigger();
             }
         }
     }

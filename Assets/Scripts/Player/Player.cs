@@ -323,7 +323,16 @@ public class Player : Entity
                 }
             }
 
-            if (!sliding)
+            if (sliding)
+            {
+                vel.x = slideStoredVel;
+                slideStoredVel += slideSpeedLoss * (slideStoredVel > 0f ? -1f : 1f);
+                if (Mathf.Abs(slideStoredVel) <= 2f)
+                {
+                    sliding = false;
+                }
+            }
+            else
             {
                 if (noControlTime == 0f)
                 {
@@ -353,6 +362,7 @@ public class Player : Entity
         }
         else
         {
+            crouching = false;
             sliding = false;
             if (noControlTime == 0f)
             {
@@ -421,14 +431,6 @@ public class Player : Entity
                     gravityCap = 3f;
                 }
             }
-        }
-
-        // TEMP
-        if (sliding) vel.x = slideStoredVel;
-        slideStoredVel += slideSpeedLoss * (slideStoredVel > 0f ? -1f : 1f);
-        if (Mathf.Abs(slideStoredVel) <= 2f)
-        {
-            sliding = false;
         }
 
         if (vel.y < -gravityCap)
