@@ -5,8 +5,8 @@ public class Player : Entity
 {
     public static Player Inst { get; private set; }
 
+    #region Stats
     [Space]
-    [Header("Stats")]
     public float groundSmooth = 0.08f;
     public float speed = 4f;
     public float airSmooth = 0.2f;
@@ -17,9 +17,9 @@ public class Player : Entity
     public float slopeCorrect = 0.5f;
     public float slideMult = 1.5f, slideSpeedLoss = 0.2f;
     public Rect gCheck = new(new(0f, -0.5f), new(0.42f, 0.1f));
-
+    #endregion
+    #region References
     [Space]
-    [Header("References")]
     public List<AudioA> clips;
     public AudioA footstepClips;
     public GameObject
@@ -39,8 +39,8 @@ public class Player : Entity
     private SpriteRenderer sr;
     private Animator animator;
     private Rigidbody2D rb;
-
-    // Loaded resources
+    #endregion
+    #region Resources
     private static readonly int
         Idle = Animator.StringToHash("Idle"),
         Walk = Animator.StringToHash("Walk"),
@@ -55,7 +55,8 @@ public class Player : Entity
         Skill1 = Animator.StringToHash("Skill1"),
         Skill2 = Animator.StringToHash("Skill2"),
         MoveSpeed = Animator.StringToHash("MoveSpeed");
-
+    #endregion
+    #region Movement
     private Vector2 lastTouchedGround;
     private float currentVel;
 
@@ -75,8 +76,8 @@ public class Player : Entity
     private bool doubleJump;
 
     private bool canRecoil = true;
-
-    // literally just timers
+    #endregion
+    #region Timers
     private float coyoteTime;
     private float notOnGroundTime;
     private float noControlTime;
@@ -84,23 +85,20 @@ public class Player : Entity
     private bool flying;
     private float dashCooldown, dashTime;
     private bool dashDir;
-    private bool dashFx;
+    private bool dashSpawnFxFrame;
 
-    // spaghetti code!
     public float damageTime;
     public float iFrames;
     public float shieldTime;
     private float healWait;
+    #endregion
+    #region Visual
     private int currentState;
     private float lockedUntil;
-
-    private float gravityCap = -10f;
-
-    // Visual
     private float fsCycle;
     private Color hurtColor = new(1f, 1f, 1f, 0.25f);
-
-    private static bool loaded;
+    #endregion
+    #region Initialize
     protected override void Awake()
     {
         base.Awake();
@@ -121,21 +119,22 @@ public class Player : Entity
         transform.position = startPos;
     }
 
-    // Input
+    private void OnEnable() => input.Player.Enable();
+    private void OnDisable() => input.Player.Disable();
+    #endregion
+    #region Input
     private InputMaster input;
     private float inMove, inJumpBuffer;
     private bool inJump, inCrouch;
     private int inSwitch;
     private bool[] inSkill = new bool[3];
     private bool inSkillA, inSkillAHeld;
-    private void OnEnable() => input.Player.Enable();
-    private void OnDisable() => input.Player.Disable();
-
     private void Update()
     {
         if (input.Player.Jump.triggered) inJumpBuffer = 0.08f;
         inJump = input.Player.Jump.IsPressed();
         inMove = input.Player.Horizontal.ReadValue<float>();
+        if (Mathf.Abs(inMove) < 0.1f) inMove = 0f;
         inCrouch = input.Player.Crouch.IsPressed();
 
         // oh the misery
@@ -150,12 +149,13 @@ public class Player : Entity
         if (input.Player.SkillA.triggered) inSkillA = true;
         inSkillAHeld = input.Player.SkillA.IsPressed();
     }
-
-    // whew
+    #endregion
     private void FixedUpdate()
     {
-        // just for convenience
+        #region Initial logic
         Vector2 vel = rb.velocity;
+        float gravity = 1f;
+        float gravityCap = maxGrav;
 
         // check movement input and update facing direction
         if (inMove > 0f && !facing) facing = true;
@@ -165,8 +165,8 @@ public class Player : Entity
         {
             Switch(inSwitch);
         }
-
-        // update timers
+        #endregion
+        #region Update timers
         Utils.TimeDown(ref coyoteTime);
         Utils.TimeDown(ref noControlTime);
         Utils.TimeDown(ref shieldTime);
@@ -179,8 +179,8 @@ public class Player : Entity
 
         if (Utils.TimeDown(ref dashTime))
             UpdateDash();
-
-        // check for ground collision
+        #endregion
+        #region Ground collision
         wasOnGround = onGround;
         onGround = false;
 
@@ -200,12 +200,77 @@ public class Player : Entity
             }
         }
 
+        // check for wall collision
+        if (Physics2D.OverlapBox((Vector2)transform.position
+            + new Vector2(-0.24f, -0.35f),
+            new(0.1f, 0.2f), 0f, 1))
+            wallSlideDir = -1;
+        else if (Physics2D.OverlapBox((Vector2)transform.position
+            + new Vector2(0.24f, -0.35f),
+            new(0.1f, 0.2f), 0f, 1))
+            wallSlideDir = 1;
+        else
+            wallSlideDir = 0;
+
+        wallSliding = wallSlideDir != 0 && inMove != 0f && vel.y <= 0f && !onGround;
+        #endregion
+        #region Jumps n' Stuff
         if (Utils.TimeDown(ref inJumpBuffer))
         {
             GJump();
         }
 
-        // activate skills
+        if (!endedJump && !inJump)
+        {
+            endedJump = true;
+        }
+
+        if (vel.y > 0f)
+        {
+            if (canEndJump && endedJump)
+            {
+                gravity = 5f;
+            }
+        }
+        else
+        {
+            if (wallSliding)
+            {
+                gravity = 0.1f;
+                gravityCap = 3f;
+            }
+        }
+
+        flying = false;
+        if (party.current == Mb.Vi
+            && inSkillAHeld
+            && flyTime > 0f
+            && noControlTime == 0f)
+        {
+            Utils.TimeDown(ref flyTime);
+            flying = true;
+            if (onGround)
+            {
+                // pseudo-jump
+                vel.y = 6f;
+                notOnGroundTime = 0.1f;
+            }
+            else
+            {
+                vel.y *= 0.94f;
+                if (vel.y < 0f)
+                {
+                    vel.y = Mathf.Min(vel.y + 15 * Time.deltaTime, 0f);
+                }
+                if (vel.y > 6f) vel.y = 6f;
+            }
+
+            gravity = 0f;
+
+            if (!audioEx.isPlaying) audioEx.Play();
+        }
+        #endregion
+        #region Skills
         // TODO: fix this mess
         switch (party.current)
         {
@@ -253,27 +318,21 @@ public class Player : Entity
                 }
                 break;
         }
+        #endregion
 
-        // check for wall collision
-        if (Physics2D.OverlapBox((Vector2)transform.position
-            + new Vector2(-0.24f, -0.35f),
-            new(0.1f, 0.2f), 0f, 1))
-            wallSlideDir = -1;
-        else if (Physics2D.OverlapBox((Vector2)transform.position
-            + new Vector2(0.24f, -0.35f),
-            new(0.1f, 0.2f), 0f, 1))
-            wallSlideDir = 1;
-        else
-            wallSlideDir = 0;
-
-        wallSliding = wallSlideDir != 0 && inMove != 0f && vel.y <= 0f && !onGround;
-
-        // find target velocity
+        // Find target velocity
         targetX = inMove * speed;
+        if (crouching) targetX *= 0.5f;
 
         if (onGround)
         {
-            if (crouching) targetX *= 0.5f;
+            #region Ground Movement
+            coyoteTime = setCoyoteTime;
+            canEndJump = true;
+            doubleJump = true;
+            canRecoil = true;
+            wallSlideDir = 0;
+            flyTime = maxFlyTime;
 
             // attempt vertical normalisation
             RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
@@ -352,89 +411,26 @@ public class Player : Entity
                     }
                 }
             }
-            // Reset variables on ground
-            coyoteTime = setCoyoteTime;
-            canEndJump = true;
-            doubleJump = true;
-            canRecoil = true;
-            wallSlideDir = 0;
-            flyTime = maxFlyTime;
+            #endregion
         }
         else
         {
+            #region Air Movement
             crouching = false;
             sliding = false;
+
             if (noControlTime == 0f)
             {
                 vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
                     airSmooth, Mathf.Infinity, Time.deltaTime);
             }
-        }
 
-        // end jump early if jump is released
-        if ((!endedJump && !inJump))
-        {
-            endedJump = true;
-            noControlTime = 0f;
-        }
-
-        flying = false;
-        if (party.current == Mb.Vi
-            && inSkillAHeld
-            && flyTime > 0f
-            && noControlTime == 0f)
-        {
-            flying = true;
-            if (onGround)
+            if (inCrouch)
             {
-                vel.y = 6f;
-                notOnGroundTime = 0.1f;
+                gravityCap += 5f;
             }
-            else
-            {
-                vel.y *= 0.94f;
-                if (vel.y < 0f)
-                {
-                    vel.y += 15f * Time.deltaTime;
-                    if (vel.y > 0f) vel.y = 0f;
-                }
-            }
-
-            if (!audioEx.isPlaying) audioEx.Play();
-
-            Utils.TimeDown(ref flyTime);
+            #endregion
         }
-
-        rb.gravityScale = 1f;
-        gravityCap = maxGrav;
-        if (inCrouch)
-        {
-            gravityCap += 5f;
-        }
-
-        if (flying || dashTime > 0.05f)
-            rb.gravityScale = 0f;
-        else
-        {
-            if (vel.y > 0f)
-            {
-                if (canEndJump && endedJump)
-                {
-                    rb.gravityScale = 5f;
-                }
-            }
-            else
-            {
-                if (wallSliding)
-                {
-                    rb.gravityScale = 0.1f;
-                    gravityCap = 3f;
-                }
-            }
-        }
-
-        if (vel.y < -gravityCap)
-            vel.y = -gravityCap;
 
         if (transform.position.y < -6.5f)
         {
@@ -447,7 +443,9 @@ public class Player : Entity
             vel.y = 0f;
         }*/
 
-        // finally, update with new velocity
+        rb.gravityScale = gravity;
+        if (vel.y < -gravityCap)
+            vel.y = -gravityCap;
         rb.velocity = vel;
 
         // update visuals
@@ -489,7 +487,6 @@ public class Player : Entity
         }
 
         // reset input
-        // (god this is such an awkward way to do this)
         inSwitch = -1;
         for (int i = 0; i < inSkill.Length; i++) inSkill[i] = false;
         inSkillA = false;
@@ -565,19 +562,17 @@ public class Player : Entity
 
         void UpdateDash()
         {
-            if (dashTime > 0.05f)
-            {
-                vel.x = dashDir ? 15f : -15f;
-                vel.y = 0f;
-            }
+            vel.x = dashDir ? 15f : -15f;
+            vel.y = 0f;
+            gravity = 0f;
 
-            if (dashFx)
+            if (dashSpawnFxFrame)
             {
                 GameObject dt = GameManager.Spawn(dashTrailFx, transform.position);
                 dt.transform.localScale = new(facing ? -1f : 1f, 1f);
-                dashFx = false;
+                dashSpawnFxFrame = false;
             }
-            else dashFx = true;
+            else dashSpawnFxFrame = true;
 
             Collider2D check = Physics2D.OverlapBox(transform.position,
                 new(0.6f, 0.85f), 0f, 1);
