@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class StateMachine : MonoBehaviour
+public class BaseStateMachine : MonoBehaviour
 {
-    public bool canEnterSameState;
+    public bool canReenterState;
     private State currentState;
 
     void Start()
@@ -26,7 +26,7 @@ public class StateMachine : MonoBehaviour
 
     public void ChangeState(State newState)
     {
-        if (currentState == newState && !canEnterSameState)
+        if (currentState == newState && !canReenterState)
         {
             return;
         }
@@ -40,12 +40,5 @@ public class StateMachine : MonoBehaviour
     protected virtual State GetInitialState()
     {
         return null;
-    }
-
-    // DEBUG
-    private void OnGUI()
-    {
-        string content = currentState != null ? currentState.name : "(no current state)";
-        GUILayout.Label($"<color='black'><size=40>{content}</size></color>");
     }
 }

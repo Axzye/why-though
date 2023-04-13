@@ -1,11 +1,9 @@
 public class State
 {
-    public string name;
-    protected StateMachine stateMachine;
+    protected BaseStateMachine stateMachine;
 
-    public State(string name, StateMachine stateMachine)
+    public State(BaseStateMachine stateMachine)
     {
-        this.name = name;
         this.stateMachine = stateMachine;
     }
 
