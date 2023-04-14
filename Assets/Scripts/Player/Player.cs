@@ -5,6 +5,8 @@ public class Player : Entity
 {
     public static Player Inst { get; private set; }
 
+    // Many variables
+    // Ideally these would all be private but eh
     #region Stats
     [Space]
     public float groundSmooth = 0.08f;
@@ -98,6 +100,15 @@ public class Player : Entity
     private float fsCycle;
     private Color hurtColor = new(1f, 1f, 1f, 0.25f);
     #endregion
+    #region Input
+    private InputMaster input;
+    private float inMove, inJumpBuffer;
+    private bool inJump, inCrouch;
+    private int inSwitch;
+    private bool[] inSkill = new bool[3];
+    private bool inSkillA, inSkillAHeld;
+    #endregion
+
     #region Initialize
     protected override void Awake()
     {
@@ -122,15 +133,11 @@ public class Player : Entity
     private void OnEnable() => input.Player.Enable();
     private void OnDisable() => input.Player.Disable();
     #endregion
-    #region Input
-    private InputMaster input;
-    private float inMove, inJumpBuffer;
-    private bool inJump, inCrouch;
-    private int inSwitch;
-    private bool[] inSkill = new bool[3];
-    private bool inSkillA, inSkillAHeld;
+
+    // This is one bloated update loop
     private void Update()
     {
+        #region Update input
         if (input.Player.Jump.triggered) inJumpBuffer = 0.08f;
         inJump = input.Player.Jump.IsPressed();
         inMove = input.Player.Horizontal.ReadValue<float>();
@@ -148,8 +155,8 @@ public class Player : Entity
 
         if (input.Player.SkillA.triggered) inSkillA = true;
         inSkillAHeld = input.Player.SkillA.IsPressed();
+        #endregion
     }
-    #endregion
 
     private void FixedUpdate()
     {
@@ -624,6 +631,7 @@ public class Player : Entity
         #endregion
     }
 
+    // Functions
     #region Internal only
     private void Cut()
     {
