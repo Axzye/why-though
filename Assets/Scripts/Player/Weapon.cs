@@ -4,29 +4,32 @@ using UnityEngine.Rendering.Universal;
 
 public class Weapon : MonoBehaviour
 {
+    #region Stats
     [Header("Stats")]
     public Sprite bmSprite;
     public float throwSpeed, throwKnockback, throwMaxTime;
-
+    #endregion
+    #region References
+    [Header("References")]
     public GameObject tfx;
-    private Player player;
-    private Party party;
-    private Ally current;
-    private Rigidbody2D rb2d;
-
     public GameObject image;
     public Light2D light2d;
-    private SpriteRenderer sr;
-    private ParticleSystem ptcSystem;
-    private Camera main;
-
-    [Header("References")]
     public AudioA coinFlip;
     public AudioA throwClip;
     public AudioA throwHitClip;
     public AudioA catchClip;
     public GameObject coin;
 
+    private Rigidbody2D rb2d;
+    private SpriteRenderer sr;
+    private ParticleSystem ptcSystem;
+
+    private Camera main;
+    private Player player;
+    private Party party;
+    private Ally current;
+    #endregion
+    #region General vars
     private float fireTime;
     private float angle;
     private float actualAngle;
@@ -38,8 +41,8 @@ public class Weapon : MonoBehaviour
     private InputMaster input;
     private Vector2 mousePos;
     private bool inFire;
-
-    // ok
+   
+    // that's a lot of variables for one skill...
     private AudioSource throwAudios;
     private TrailRenderer throwTrail;
     public bool thrown;
@@ -49,7 +52,24 @@ public class Weapon : MonoBehaviour
     private Vector2 throwAddVel;
     private int throwAmountHit;
     private float throwCatchSpin;
+    #endregion
+    #region Properties
+    private bool CanFire
+    {
+        get
+        {
+            if (fireTime > 0f)
+                return false;
+            if (current.clip == 0)
+                return false;
+            if (thrown)
+                return false;
+            return true;
+        }
+    }
+    #endregion
 
+    #region Initialize
     private void Awake()
     {
         throwAudios = tfx.GetComponent<AudioSource>();
@@ -67,12 +87,14 @@ public class Weapon : MonoBehaviour
     {
         player = Player.Inst;
         party = Party.Inst;
-        current = party.Cur;
+        current = party.CurrentAlly;
         rb2d = player.GetComponent<Rigidbody2D>();
     }
+    #endregion
 
     private void Update()
     {
+        #region I really need to clean this up
         if (Time.timeScale == 0f)
             return;
 
@@ -80,7 +102,7 @@ public class Weapon : MonoBehaviour
         mousePos = Mouse.current.position.ReadValue() - (Vector2)main.WorldToScreenPoint(transform.position);
         angle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
 
-        flipped = (Mathf.Abs(angle) > 90f);
+        flipped = Mathf.Abs(angle) > 90f;
 
         if (thrown)
         {
@@ -103,46 +125,25 @@ public class Weapon : MonoBehaviour
 
             actualAngle = Mathf.SmoothDampAngle(actualAngle, angle, ref currentAngle, 0.05f);
         }
+        #endregion
     }
 
     private void FixedUpdate()
     {
-        if (current != party.Cur)
+        #region Yup
+        if (current != party.CurrentAlly)
         {
-            current = party.Cur;
+            current = party.CurrentAlly;
             SwitchAlly();
         }
-
+        #endregion
+        #region Update timers
         Utils.TimeDown(ref fireTime);
+        #endregion
 
         if (!thrown)
-            UpdateDef();
-        else
-            UpdateThrow();
-
-        foreach (Ally set in party.allies)
         {
-            if (!set.reloading && !(set == current && fireTime > 0f) && !set.clip.Full)
-            {
-                set.reloading = true;
-            }
-
-            if (set.reloading)
-            {
-                if (!Utils.TimeUp(ref set.reloadTime, set.relCooldown))
-                    Reload(set);
-            }
-        }
-
-        light2d.intensity = Mathf.Min(Utils.Pow(flash, 4) * 20000f, 6f);
-        if (flash > 0f)
-        {
-            flash -= Time.deltaTime;
-            if (flash < 0.05f) sr.sprite = current.gunA;
-        }
-
-        void UpdateDef()
-        {
+            #region Update default
             throwTrail.emitting = false;
 
             if (inFire && CanFire)
@@ -159,10 +160,11 @@ public class Weapon : MonoBehaviour
                 throwCatchSpin *= 0.8f;
             else
                 throwCatchSpin = 0f;
+            #endregion
         }
-
-        void UpdateThrow()
+        else
         {
+            #region Update when thrown
             if (throwTime > 0.5f && (transform.position - player.transform.position).sqrMagnitude < 0.5f)
                 Catch();
 
@@ -177,73 +179,43 @@ public class Weapon : MonoBehaviour
                 vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
                 vel += throwAddVel / (throwTime + 1f);
                 throwTrail.emitting = true;
-                Coll();
-                void Coll()
-                {
-                    if (throwTime == 0f) return;
-
-                    Collider2D checkG = Physics2D.OverlapCircle(transform.position, 0.25f, 1);
-                    if (checkG)
-                    {
-                        FollowCamera.Shake(1f);
-                        throwTime = throwMaxTime;
-                        AudioManager.Play(throwHitClip);
-                    }
-
-                    Collider2D checkH = Physics2D.OverlapCircle(transform.position, 0.4f, 128);
-                    if (checkH)
-                    {
-                        if (checkH.TryGetComponent<ITarget>(out var hit))
-                        {
-                            DamageInfo inf = new()
-                            {
-                                damage = throwAmountHit == 0 ? 2 : 1,
-                                addForce = throwAngle * throwKnockback + Vector2.up,
-                                iFrames = 0.12f
-                            };
-
-                            if (hit.Damage(inf))
-                            {
-                                throwFreeze = 3f / 60f;
-                                throwAmountHit++;
-                                if (throwAmountHit >= 4) throwTime = throwMaxTime;
-                            }
-                        }
-                    }
-                }
+                ThrowCheckForColl();
             }
             throwTime += Time.deltaTime;
 
             if (!Utils.TimeDown(ref throwFreeze))
                 transform.position += (Vector3)(vel * Time.deltaTime);
+            #endregion
         }
 
-        void Reload(Ally set)
+        #region Update all
+        foreach (Ally set in party.allies)
         {
-            set.clip.Add(set.reloadAll ? 99 : 1);
+            if (!set.reloading && !(set == current && fireTime > 0f) && !set.clip.Full)
+            {
+                set.reloading = true;
+            }
 
-            if (set.clip.Full)
-                set.reloading = false;
-
-            AudioManager.Play(set.relEndClip);
-            set.reloadTime = 0f;
+            if (set.reloading)
+            {
+                if (!Utils.TimeUp(ref set.reloadTime, set.relCooldown))
+                    Reload(set);
+            }
         }
+        #endregion
+        #region Update visual
+        light2d.intensity = Mathf.Min(Utils.Pow(flash, 4) * 20000f, 6f);
+        if (flash > 0f)
+        {
+            flash -= Time.deltaTime;
+            if (flash < 0.05f) sr.sprite = current.gunA;
+        }
+        #endregion
     }
 
-    private bool CanFire
-    {
-        get
-        {
-            if (fireTime > 0f)
-                return false;
-            if (current.clip == 0)
-                return false;
-            if (thrown)
-                return false;
-            return true;
-        }
-    }
-
+    // Functions
+    // "internal" hahaha
+    #region Internal
     private void Fire()
     {
         current.reloading = false;
@@ -258,7 +230,7 @@ public class Weapon : MonoBehaviour
             case Mb.Vi:
                 int damage = 1;
 
-                CreateBullet(0f, damage);
+                SpawnBullet(0f, damage);
                 break;
             case Mb.Kabbu:
                 // always hit enemies in close proximity
@@ -278,7 +250,7 @@ public class Weapon : MonoBehaviour
                 else
                 {
                     for (int i = 0; i < 4; i++)
-                        CreateBullet(-12f + i * 8f + Random.Range(-3f, 3f), 1);
+                        SpawnBullet(-12f + i * 8f + Random.Range(-3f, 3f), 1);
                 }
 
                 if (!player.crouching) player.ApplyRecoil(mousePos);
@@ -295,28 +267,74 @@ public class Weapon : MonoBehaviour
 
         ptcSystem.Emit(1);
         sr.sprite = current.gunB;
-
-        void CreateBullet(float addAngle, int damage)
-        {
-            GameObject proj = GameManager.Spawn(current.projectile, transform.position + transform.right * 0.5f);
-            Bullet bullet = proj.GetComponent<Bullet>();
-            bullet.shotBy = current.id;
-            bullet.inf = current.infBase;
-            bullet.inf.damage = damage;
-
-            if (player.crouching)
-                addAngle *= 0.5f;
-
-            proj.transform.rotation = Quaternion.AngleAxis(angle + addAngle, Vector3.forward);
-            proj.transform.position = transform.position + transform.right * 0.5f;
-
-            proj.SetActive(true);
-        }
     }
 
+    private void SpawnBullet(float addAngle, int damage)
+    {
+        GameObject proj = GameManager.Spawn(current.projectile, transform.position + transform.right * 0.5f);
+        Bullet bullet = proj.GetComponent<Bullet>();
+        bullet.shotBy = current.id;
+        bullet.inf = current.infBase;
+        bullet.inf.damage = damage;
+
+        if (player.crouching)
+            addAngle *= 0.5f;
+
+        proj.transform.rotation = Quaternion.AngleAxis(angle + addAngle, Vector3.forward);
+        proj.transform.position = transform.position + transform.right * 0.5f;
+
+        proj.SetActive(true);
+    }
+
+    private void Reload(Ally set)
+    {
+        set.clip.Add(set.reloadAll ? 99 : 1);
+
+        if (set.clip.Full)
+            set.reloading = false;
+
+        AudioManager.Play(set.relEndClip);
+        set.reloadTime = 0f;
+    }
+
+    private void ThrowCheckForColl()
+    {
+        if (throwTime == 0f) return;
+
+        Collider2D checkG = Physics2D.OverlapCircle(transform.position, 0.25f, 1);
+        if (checkG)
+        {
+            FollowCamera.Shake(1f);
+            throwTime = throwMaxTime;
+            AudioManager.Play(throwHitClip);
+        }
+
+        Collider2D checkH = Physics2D.OverlapCircle(transform.position, 0.4f, 128);
+        if (checkH)
+        {
+            if (checkH.TryGetComponent<ITarget>(out var hit))
+            {
+                DamageInfo inf = new()
+                {
+                    damage = throwAmountHit == 0 ? 2 : 1,
+                    addForce = throwAngle * throwKnockback + Vector2.up,
+                    iFrames = 0.12f
+                };
+
+                if (hit.Damage(inf))
+                {
+                    throwFreeze = 3f / 60f;
+                    throwAmountHit++;
+                    if (throwAmountHit >= 4) throwTime = throwMaxTime;
+                }
+            }
+        }
+    }
+    #endregion
+    #region External
     public void SwitchAlly()
     {
-        sr.sprite = party.Cur.gunA;
+        sr.sprite = party.CurrentAlly.gunA;
     }
 
     public void FlipCoin()
@@ -355,8 +373,9 @@ public class Weapon : MonoBehaviour
         actualAngle = angle;
         if (throwAmountHit > 0) player.SpawnActionText(Mathf.Max(throwAmountHit - 1, 0), 0.5f);
 
-        sr.sprite = party.Cur.gunA;
+        sr.sprite = party.CurrentAlly.gunA;
         AudioManager.Play(catchClip);
         throwAudios.Stop();
     }
+    #endregion
 }

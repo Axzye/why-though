@@ -45,7 +45,7 @@ public class UIAlly : MonoBehaviour
         icon.sprite = defIcon;
         image.color = defCol;
         icon.color = Color.white;
-        if (Party.Inst.current == which)
+        if (Party.Inst.CurrentID == which)
         {
             rt.anchoredPosition += Vector2.down * Mathf.Abs(Mathf.Sin(Time.time * Mathf.PI)) * 2f;
 

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 public class Party : MonoSingleton<Party>
 {
-    public Ally Cur => allies[(int)current];
-    public Mb current;
+    public Ally CurrentAlly => allies[(int)CurrentID];
+    public Mb CurrentID { get; set; }
     public List<Ally> allies;
 
     public AllyData[] loadAllies; // TEMP

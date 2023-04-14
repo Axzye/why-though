@@ -6,9 +6,9 @@ public class Player : Entity
     public static Player Inst { get; private set; }
 
     // Many variables
-    // Ideally these would all be private but eh
+    // Ideally these would all be private but alas, spaghetti
     #region Stats
-    [Space]
+    [Header("Stats")]
     public float groundSmooth = 0.08f;
     public float speed = 4f;
     public float airSmooth = 0.2f;
@@ -21,7 +21,7 @@ public class Player : Entity
     public Rect gCheck = new(new(0f, -0.5f), new(0.42f, 0.1f));
     #endregion
     #region References
-    [Space]
+    [Header("References")]
     public List<AudioA> clips;
     public AudioA footstepClips;
     public GameObject
@@ -282,7 +282,7 @@ public class Player : Entity
         #endregion
         #region Update Skills
         // TODO: whatever the hell this is
-        switch (party.current)
+        switch (party.CurrentID)
         {
             case Mb.Vi:
                 if (Skill(0, 0))
@@ -332,14 +332,14 @@ public class Player : Entity
         #region Whatever SkillA is
         // ??
         flying = false; 
-        if (party.current == Mb.Vi
+        if (party.CurrentID == Mb.Vi
             && inSkillAHeld)
         {
             if (Utils.TimeDown(ref flyTime))
                 UpdateFly();
         }
 
-        if (party.current == Mb.Kabbu)
+        if (party.CurrentID == Mb.Kabbu)
         {
             if (Utils.TimeDown(ref dashTime))
                 UpdateDash();
@@ -435,8 +435,8 @@ public class Player : Entity
         for (int i = 0; i < inSkill.Length; i++) inSkill[i] = false;
         inSkillA = false;
         #endregion
-        #region Update visuals
-        if (targetX != 0f)
+        #region Audio n' Visuals
+        if (onGround && targetX != 0f)
         {
             fsCycle += Time.deltaTime * 3f;
             if (fsCycle > 1f)
@@ -794,29 +794,29 @@ public class Player : Entity
     {
         if (time != -1f)
         {
-            if (time > party.Cur.se[(int)status])
-                party.Cur.se[(int)status] = time;
+            if (time > party.CurrentAlly.se[(int)status])
+                party.CurrentAlly.se[(int)status] = time;
         }
         else
-            party.Cur.se[(int)status] = 0f;
+            party.CurrentAlly.se[(int)status] = 0f;
     }
 
     public void Switch(int to)
     {
-        if (to == (int)party.current) return;
+        if (to == (int)party.CurrentID) return;
         if (to >= party.allies.Count) return;
 
         if (CanSwitch())
         {
-            party.current = (Mb)to;
+            party.CurrentID = (Mb)to;
 
             AudioManager.Play(clips[2]);
-            AudioManager.Play(party.Cur.switchToClip);
+            AudioManager.Play(party.CurrentAlly.switchToClip);
 
             weapon.SwitchAlly();
 
             currentState = Idle;
-            animator.runtimeAnimatorController = party.Cur.animation;
+            animator.runtimeAnimatorController = party.CurrentAlly.animation;
             iFrames = 0.1f; // sure hope this won't cause any problems
             playerBody.scale.x = 0f;
             dashTime = 0f;

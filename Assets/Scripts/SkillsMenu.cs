@@ -11,15 +11,15 @@ public class SkillsMenu : MonoBehaviour
     private void Start()
     {
         party = Party.Inst;
-        current = party.Cur;
+        current = party.CurrentAlly;
         UpdateIcons();
     }
 
     private void FixedUpdate()
     {
-        if (party.Cur != current)
+        if (party.CurrentAlly != current)
         {
-            current = party.Cur;
+            current = party.CurrentAlly;
             flipTime = 0.5f;
             UpdateIcons();
         }
@@ -30,10 +30,10 @@ public class SkillsMenu : MonoBehaviour
         for (int i = 0; i < images.Length; i++)
         {
             float fill;
-            if (party.tp < party.Cur.skills[i].cost)
+            if (party.tp < party.CurrentAlly.skills[i].cost)
                 fill = 1f;
             else
-                fill = party.Cur.skills[i].time / party.Cur.skills[i].cooldown;
+                fill = party.CurrentAlly.skills[i].time / party.CurrentAlly.skills[i].cooldown;
 
             images[i].fill.fillAmount = fill;
         }
