@@ -15,7 +15,7 @@ MonoBehaviour:
   stats:
     id: 0
     skills:
-    - _name: Hurricane Toss
+    - _name: Gun Toss
       icon: {fileID: -1547710027, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
       cooldown: 2
       cost: 0
@@ -23,7 +23,7 @@ MonoBehaviour:
       icon: {fileID: -405838411, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
       cooldown: 2.5
       cost: 1
-    - _name: Heal
+    - _name: Sharing Stash
       icon: {fileID: 1592763381, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
       cooldown: 5
       cost: 3

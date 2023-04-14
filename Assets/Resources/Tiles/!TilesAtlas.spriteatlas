@@ -257,5 +257,5 @@ SpriteAtlas:
   - grass_33
   - grass_32
   m_RenderDataMap: {}
-  m_Tag: Tile
+  m_Tag: '!TilesAtlas'
   m_IsVariant: 0
