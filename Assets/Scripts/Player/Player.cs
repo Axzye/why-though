@@ -72,7 +72,7 @@ public class Player : Entity
     public bool crouching;
 
     private bool endedJump;
-    public bool canEndJump;
+    private bool canEndJump;
     private bool doubleJump;
 
     private bool canRecoil = true;
@@ -150,6 +150,7 @@ public class Player : Entity
         inSkillAHeld = input.Player.SkillA.IsPressed();
     }
     #endregion
+
     private void FixedUpdate()
     {
         #region Initial logic
@@ -174,13 +175,24 @@ public class Player : Entity
         Utils.TimeDown(ref iFrames);
         Utils.TimeDown(ref notOnGroundTime);
         Utils.TimeDown(ref dashCooldown);
+
         if (Utils.TimeDownTick(ref healWait))
             Heal(5, false);
 
-        if (Utils.TimeDown(ref dashTime))
-            UpdateDash();
         #endregion
-        #region Ground collision
+        #region Update collision
+        // TODO: Change this to proper level bounds system
+        if (transform.position.y < -6.5f)
+        {
+            AudioManager.Play(clips[11]);
+            ResetPos();
+        }
+        /*else if (transform.position.y > 10.5f)
+        {
+            transform.position = new(transform.position.x, 10.5f);
+            vel.y = 0f;
+        }*/
+
         wasOnGround = onGround;
         onGround = false;
 
@@ -200,7 +212,7 @@ public class Player : Entity
             }
         }
 
-        // check for wall collision
+        // Check for wall collision
         if (Physics2D.OverlapBox((Vector2)transform.position
             + new Vector2(-0.24f, -0.35f),
             new(0.1f, 0.2f), 0f, 1))
@@ -213,14 +225,34 @@ public class Player : Entity
             wallSlideDir = 0;
 
         wallSliding = wallSlideDir != 0 && inMove != 0f && vel.y <= 0f && !onGround;
+
+        if (onGround)
+        {
+            // Attempt vertical normalisation
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
+            if (hit.collider)
+            {
+                lastTouchedGround = transform.position;
+                /*if (Mathf.Abs(hit.normal.x) > 0.1f)
+                {
+                    // Apply the opposite force against the slope force 
+                    vel.x -= hit.normal.x * slopeCorrect;
+
+                    //Move Player up or down to compensate for the slope below them
+                    Vector3 pos = transform.position;
+                    pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
+                    transform.position = pos;
+                }*/
+            }
+        }
         #endregion
         #region Jumps n' Stuff
         if (Utils.TimeDown(ref inJumpBuffer))
         {
-            GJump();
+            TryJump();
         }
 
-        if (!endedJump && !inJump)
+        if (!inJump)
         {
             endedJump = true;
         }
@@ -240,38 +272,9 @@ public class Player : Entity
                 gravityCap = 3f;
             }
         }
-
-        flying = false;
-        if (party.current == Mb.Vi
-            && inSkillAHeld
-            && flyTime > 0f
-            && noControlTime == 0f)
-        {
-            Utils.TimeDown(ref flyTime);
-            flying = true;
-            if (onGround)
-            {
-                // pseudo-jump
-                vel.y = 6f;
-                notOnGroundTime = 0.1f;
-            }
-            else
-            {
-                vel.y *= 0.94f;
-                if (vel.y < 0f)
-                {
-                    vel.y = Mathf.Min(vel.y + 15 * Time.deltaTime, 0f);
-                }
-                if (vel.y > 6f) vel.y = 6f;
-            }
-
-            gravity = 0f;
-
-            if (!audioEx.isPlaying) audioEx.Play();
-        }
         #endregion
-        #region Skills
-        // TODO: fix this mess
+        #region Update Skills
+        // TODO: whatever the hell this is
         switch (party.current)
         {
             case Mb.Vi:
@@ -319,70 +322,49 @@ public class Player : Entity
                 break;
         }
         #endregion
+        #region Whatever SkillA is
+        // ??
+        flying = false; 
+        if (party.current == Mb.Vi
+            && inSkillAHeld)
+        {
+            if (Utils.TimeDown(ref flyTime))
+                UpdateFly();
+        }
 
+        if (party.current == Mb.Kabbu)
+        {
+            if (Utils.TimeDown(ref dashTime))
+                UpdateDash();
+        }
+        #endregion
+        #region Update movement
         // Find target velocity
         targetX = inMove * speed;
         if (crouching) targetX *= 0.5f;
 
         if (onGround)
         {
-            #region Ground Movement
+            #region Reset vars
             coyoteTime = setCoyoteTime;
             canEndJump = true;
             doubleJump = true;
             canRecoil = true;
             wallSlideDir = 0;
             flyTime = maxFlyTime;
-
-            // attempt vertical normalisation
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
-            if (hit.collider)
+            #endregion
+            UpdateCrouchSlide();
+            #region Move
+            if (!sliding)
             {
-                lastTouchedGround = transform.position;
-                /*if (Mathf.Abs(hit.normal.x) > 0.1f)
+                if (noControlTime == 0f)
                 {
-                    // Apply the opposite force against the slope force 
-                    vel.x -= hit.normal.x * slopeCorrect;
-
-                    //Move Player up or down to compensate for the slope below them
-                    Vector3 pos = transform.position;
-                    pos.y += -hit.normal.x * Mathf.Abs(vel.x) * Time.deltaTime * (vel.x - hit.normal.x > 0 ? 1 : -1);
-                    transform.position = pos;
-                }*/
-            }
-            
-            // Sliding & crouching
-            if (noControlTime > 0f)
-            {
-                // Cancel crouch
-                crouching = false;
+                    vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
+                        Mathf.Abs(targetX) > 0f ? groundSmooth : groundSmooth * 0.5f,
+                        Mathf.Infinity, Time.deltaTime);
+                }
             }
             else
-            {
-                if (inCrouch)
-                {
-                    // Start crouch
-                    if (!crouching)
-                    {
-                        playerBody.scale.y = 0.8f;
-                        crouching = true;
-                        if (inMove != 0f)
-                        {
-                            sliding = true;
-                            slideStoredVel = speed * slideMult * Mathf.Round(inMove); 
-                            //Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
-                            audioSldEx.Play();
-                        }
-                    }
-                }
-                else if (crouching)
-                {
-                    crouching = false;
-                    sliding = false;
-                }
-            }
-
-            if (sliding)
             {
                 vel.x = slideStoredVel;
                 slideStoredVel += slideSpeedLoss * (slideStoredVel > 0f ? -1f : 1f);
@@ -391,34 +373,15 @@ public class Player : Entity
                     sliding = false;
                 }
             }
-            else
-            {
-                if (noControlTime == 0f)
-                {
-                    vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
-                        Mathf.Abs(targetX) > 0f ? groundSmooth : groundSmooth * 0.5f,
-                        Mathf.Infinity, Time.deltaTime);
-                }
-
-                if (targetX != 0f)
-                {
-                    fsCycle += Time.deltaTime * 3f;
-                    if (fsCycle > 1f)
-                    {
-                        fsCycle = 0f;
-                        AudioManager.Play(footstepClips);
-                        fsFx.Emit(1);
-                    }
-                }
-            }
             #endregion
         }
         else
         {
-            #region Air Movement
+            #region Reset vars
             crouching = false;
             sliding = false;
-
+            #endregion
+            #region Air movement
             if (noControlTime == 0f)
             {
                 vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
@@ -432,55 +395,29 @@ public class Player : Entity
             #endregion
         }
 
-        if (transform.position.y < -6.5f)
-        {
-            AudioManager.Play(clips[11]);
-            ResetPos();
-        }
-        /*else if (transform.position.y > 10.5f)
-        {
-            transform.position = new(transform.position.x, 10.5f);
-            vel.y = 0f;
-        }*/
-
         rb.gravityScale = gravity;
         if (vel.y < -gravityCap)
             vel.y = -gravityCap;
         rb.velocity = vel;
-
-        // update visuals
-        animator.SetFloat(MoveSpeed, Mathf.Abs(inMove));
-
-        /* DEBUG
-        sr.color = Color.white;
-        if (damageTime > 0f) sr.color = Color.red;
-        if (notOnGroundTime > 0f) sr.color = Color.green;
-        if (noControlTime > 0f) sr.color = Color.yellow;
-        if (dashTime > 0f) sr.color = Color.blue;
-        */
-        
-        if (iFrames > 0f && dashTime == 0f)
-            sr.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
-        else
-            sr.color = Color.white;
-
-        playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
-
-        int state = GetAnimationState();
-        if (Time.time > lockedUntil && currentState != state)
+        #endregion
+        #region Sort these out later
+        if (flying)
         {
-            animator.CrossFade(state, 0f);
-            currentState = state;
+            if (!audioEx.isPlaying)
+                audioEx.Play();
         }
-
-        // stop looping
-        if (!flying)
+        else 
         {
             if (audioEx.isPlaying)
                 audioEx.Stop();
         }
 
-        if (!sliding)
+        if (sliding)
+        {
+            if (!audioSldEx.isPlaying)
+                audioSldEx.Play();
+        }
+        else
         {
             if (audioSldEx.isPlaying)
                 audioSldEx.Stop();
@@ -490,28 +427,44 @@ public class Player : Entity
         inSwitch = -1;
         for (int i = 0; i < inSkill.Length; i++) inSkill[i] = false;
         inSkillA = false;
-
-        int GetAnimationState()
+        #endregion
+        #region Update visuals
+        if (targetX != 0f)
         {
-            if (damageTime > 0f) return Hurt;
-
-            if (flying || dashTime > 0f) return SkillA;
-
-            if (onGround)
+            fsCycle += Time.deltaTime * 3f;
+            if (fsCycle > 1f)
             {
-                if (sliding) return Slide;
-                if (crouching) return Crouch;
-                if (Mathf.Abs(targetX) > 0f) return Walk;
+                fsCycle = 0f;
+                AudioManager.Play(footstepClips);
+                fsFx.Emit(1);
             }
-            else
-            {
-                if (rb.velocity.y > 0f) return Jump;
-                else return wallSliding ? Wallslide : Fall;
-            }
-            return Idle;
         }
 
-        void GJump()
+        if (iFrames > 0f && dashTime == 0f)
+            sr.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
+        else
+            sr.color = Color.white;
+
+        playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
+
+        //DEBUG
+        sr.color = Color.white;
+        if (damageTime > 0f) sr.color = Color.red;
+        if (notOnGroundTime > 0f) sr.color = Color.green;
+        if (noControlTime > 0f) sr.color = Color.yellow;
+        if (dashTime > 0f) sr.color = Color.blue;
+
+        animator.SetFloat(MoveSpeed, Mathf.Abs(inMove));
+
+        int state = GetAnimationState();
+        if (Time.time > lockedUntil && currentState != state)
+        {
+            animator.CrossFade(state, 0f);
+            currentState = state;
+        }
+        #endregion
+        #region Just use a goddamn state machine
+        void TryJump()
         {
             int type;
             if (onGround || coyoteTime > 0f)
@@ -560,8 +513,34 @@ public class Player : Entity
             playerBody.scale.y = 1.35f;
         }
 
+        void UpdateFly()
+        {
+            if (noControlTime > 0f) return;
+
+            gravity = 0f;
+            flying = true;
+            if (onGround)
+            {
+                // pseudo-jump
+                vel.y = 6f;
+                notOnGroundTime = 0.1f;
+            }
+            else
+            {
+                vel.y *= 0.94f;
+                if (vel.y < 0f)
+                {
+                    vel.y += 15f * Time.deltaTime;
+                    if (vel.y > 0f) vel.y = 0f;
+                }
+                if (vel.y > 6f) vel.y = 6f;
+            }
+        }
+
         void UpdateDash()
         {
+            if (noControlTime > 0f) return;
+
             vel.x = dashDir ? 15f : -15f;
             vel.y = 0f;
             gravity = 0f;
@@ -589,66 +568,142 @@ public class Player : Entity
             }
         }
 
-        void Cut()
+        void UpdateCrouchSlide()
         {
-            StartAnim(Skill0, 5f / 12f);
-            AudioManager.Play(clips[9]);
-            // TODO: make this not reliant on a visual variable
-            bool dir = dashTime > 0f ? facing : !weapon.flipped;
-            GameManager.Spawn(swingFx, transform.position)
-                .GetComponent<SpriteRenderer>().flipX = dir;
-            Collider2D[] colls = Physics2D.OverlapBoxAll(
-                (Vector2)transform.position
-                + Vector2.up * 0.375f
-                + Vector2.right * (dir ? 0.75f : -0.75f),
-                new(1.5f, 1.75f), 0f);
-            bool first = true;
-            foreach (Collider2D coll in colls)
+            if (noControlTime > 0f)
             {
-                if (coll.TryGetComponent(out Enemy enemy))
+                // Cancel crouch
+                crouching = false;
+            }
+            else
+            {
+                if (inCrouch)
                 {
-                    DamageInfo inf = new()
+                    // Start crouch
+                    if (!crouching)
                     {
-                        damage = 2,
-                        addForce = new(dir ? 5f : -5f, 7f),
-                        iFrames = 0.25f
-                    };
-
-                    if (dashTime > 0f)
-                    {
-                        inf.damage *= 2;
-                        inf.addForce.x = dir ? 8f : -8f;
-                        inf.addForce.y = 3f;
+                        playerBody.scale.y = 0.8f;
+                        crouching = true;
+                        if (inMove != 0f)
+                        {
+                            sliding = true;
+                            slideStoredVel = speed * slideMult * Mathf.Round(inMove);
+                            // Uncomment to store speed during dashes
+                            // (currently broken, you can spam to gain infinite speed)
+                            // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                        }
                     }
-                    enemy.Damage(inf);
-                    GameManager.Freeze(1f / 60f);
                 }
-
-                if (coll.TryGetComponent(out Projectile proj))
+                else if (crouching)
                 {
-                    if (!proj.enemy) return;
-                    if (first)
-                    {
-                        AudioManager.Play(clips[14]);
-                        GameManager.Freeze(12f / 60f);
-                        SpawnActionText(6, 0.5f);
-                        first = false;
-                    }
-                    proj.time = 0f;
-                    proj.inf.damage++;
-                    proj.inf.crit = true;
+                    crouching = false;
+                    sliding = false;
                 }
             }
         }
+
+        int GetAnimationState()
+        {
+            if (damageTime > 0f) return Hurt;
+
+            if (flying || dashTime > 0f) return SkillA;
+
+            if (onGround)
+            {
+                if (sliding) return Slide;
+                if (crouching) return Crouch;
+                if (Mathf.Abs(targetX) > 0f) return Walk;
+            }
+            else
+            {
+                if (rb.velocity.y > 0f) return Jump;
+                else return wallSliding ? Wallslide : Fall;
+            }
+            return Idle;
+        }
+        #endregion
     }
 
-    private void StartAnim(int state, float t)
+    #region Internal only
+    private void Cut()
     {
-        animator.CrossFade(state, 0f);
-        currentState = state;
-        lockedUntil = Time.time + t;
+        bool dir = dashTime > 0f ? facing : !weapon.flipped;
+
+        GameManager.Spawn(swingFx, transform.position)
+            .GetComponent<SpriteRenderer>().flipX = dir;
+
+        Collider2D[] colls = Physics2D.OverlapBoxAll(
+            (Vector2)transform.position
+            + Vector2.up * 0.375f
+            + Vector2.right * (dir ? 0.75f : -0.75f),
+            new(1.5f, 1.75f), 0f);
+
+        bool first = true;
+        foreach (Collider2D coll in colls)
+        {
+            if (coll.TryGetComponent(out Enemy enemy))
+            {
+                DamageInfo inf = new()
+                {
+                    damage = 2,
+                    addForce = new(dir ? 5f : -5f, 7f),
+                    iFrames = 0.25f
+                };
+
+                if (dashTime > 0f)
+                {
+                    inf.damage *= 2;
+                    inf.addForce.x = dir ? 8f : -8f;
+                    inf.addForce.y = 3f;
+                }
+                enemy.Damage(inf);
+                GameManager.Freeze(1f / 60f);
+            }
+
+            if (coll.TryGetComponent(out Projectile proj))
+            {
+                if (!proj.enemy) return;
+                if (first)
+                {
+                    AudioManager.Play(clips[14]);
+                    GameManager.Freeze(12f / 60f);
+                    SpawnActionText(6, 0.5f);
+                    first = false;
+                }
+                proj.time = 0f;
+                proj.inf.damage++;
+                proj.inf.crit = true;
+            }
+        }
+        StartAnim(Skill0, 5f / 12f);
+        AudioManager.Play(clips[9]);
     }
 
+    private bool Skill(int user, int stat)
+    {
+        Skill skill = party.allies[user].skills[stat];
+
+        if (inSkill[stat])
+        {
+            if (skill.time == 0f
+                && party.tp >= skill.cost)
+            {
+                skill.time = skill.cooldown;
+                //if (skill.cost > 0)
+                //    party.tp.Add(-skill.cost);
+                return true;
+            }
+            else
+            {
+                AudioManager.Play(clips[3]);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    #endregion
+    #region General
     public override bool Damage(DamageInfo inf)
     {
         if (iFrames > 0f && !inf.ignoreIFrames) return false;
@@ -656,6 +711,7 @@ public class Player : Entity
 
         // this is quite generous
         iFrames = 1f;
+        sliding = false;
 
         if (shieldTime > 0f)
         {
@@ -694,8 +750,6 @@ public class Player : Entity
             AudioManager.Play(clips[8]);
         }
 
-        sliding = false;
-
         if (party.hp <= 0)
         {
             if (inf.noKill)
@@ -728,29 +782,6 @@ public class Player : Entity
             .GetComponent<UINumberHeal>().Set(healTp ? 1 : 0, amount);
     }
 
-    public bool Skill(int user, int stat)
-    {
-        Skill skill = party.allies[user].skills[stat];
-
-        if (inSkill[stat])
-        {
-            if (skill.time == 0f
-                && party.tp >= skill.cost)
-            {
-                skill.time = skill.cooldown;
-                //if (skill.cost > 0)
-                //    party.tp.Add(-skill.cost);
-                return true;
-            }
-            else
-            {
-                AudioManager.Play(clips[3]);
-                return false;
-            }
-        }
-        return false;
-    }
-
     public override void AddStatusEffect(Status status, float time)
     {
         if (time != -1f)
@@ -762,7 +793,7 @@ public class Player : Entity
             party.Cur.se[(int)status] = 0f;
     }
 
-    private void Switch(int to)
+    public void Switch(int to)
     {
         if (to == (int)party.current) return;
         if (to >= party.allies.Count) return;
@@ -795,6 +826,13 @@ public class Player : Entity
         }
     }
 
+    public void StartAnim(int state, float t)
+    {
+        animator.CrossFade(state, 0f);
+        currentState = state;
+        lockedUntil = Time.time + t;
+    }
+
     private void ResetPos()
     {
         transform.position = lastTouchedGround;
@@ -802,6 +840,34 @@ public class Player : Entity
         currentVel = 0f;
         coyoteTime = 0f;
         onGround = false;
+    }
+
+    public void SpawnActionText(int type, float yOffset)
+    {
+        UINumber uiat
+            = GameManager.Spawn(actionText, transform.position + Vector3.up * yOffset)
+            .GetComponent<UINumber>();
+        uiat.Set(type);
+    }
+    #endregion
+    #region External only
+    public void Spring()
+    {
+        flyTime = maxFlyTime;
+
+        noControlTime = 0.1f;
+
+        canRecoil = true;
+        canEndJump = false;
+        doubleJump = true;
+        onGround = false;
+    }
+
+    public void RefreshCoin()
+    {
+        party.allies[0].skills[0].time = 0f;
+        party.tp.Add(party.allies[0].skills[0].cost);
+        AudioManager.Play(clips[12]);
     }
 
     public void ApplyRecoil(Vector2 push)
@@ -817,29 +883,5 @@ public class Player : Entity
         noControlTime = 0.1f;
     }
 
-    public void Spring()
-    {
-        flyTime = maxFlyTime;
-
-        noControlTime = 0.1f;
-
-        canRecoil = true;
-        doubleJump = true;
-        onGround = false;
-    }
-
-    public void RefreshCoin()
-    {
-        party.allies[0].skills[0].time = 0f;
-        party.tp.Add(party.allies[0].skills[0].cost);
-        AudioManager.Play(clips[12]);
-    }
-
-    public void SpawnActionText(int type, float yOffset)
-    {
-        UINumber uiat
-            = GameManager.Spawn(actionText, transform.position + Vector3.up * yOffset)
-            .GetComponent<UINumber>();
-        uiat.Set(type);
-    }
+    #endregion
 }

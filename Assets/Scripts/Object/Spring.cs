@@ -39,7 +39,6 @@ public class Spring : MonoBehaviour
             {
                 AudioManager.Play(springClip);
                 player.Spring();
-                player.canEndJump = false;
             }
         }
     }
