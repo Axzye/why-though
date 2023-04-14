@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : Entity
 {
+    #region Stats
     [Header("Stats")]
     public Stat hp;
     public int def;
@@ -13,15 +14,9 @@ public class Enemy : Entity
     public bool canDieToEnv = true;
     protected const int collLayers = 9;
     [System.NonSerialized]
-    public float[] se;
-
-    // resources
-    private static Sprite foundS, lostS;
-    private static PhysicsMaterial2D material;
-    private static AudioA hit, hitno, found, lost, splash;
-    private static GameObject rHpBar, deathFx, tpPickup, damageNumber;
-    protected static AudioClip[] statusClips;
-
+    public float[] statusEffects;
+    #endregion
+    #region References
     [Header("References")]
     public GameObject body;
     protected Rigidbody2D rb;
@@ -30,30 +25,42 @@ public class Enemy : Entity
     protected Animator animator;
     private SpriteRenderer emoticon;
     protected Player player;
-
+    #endregion
+    #region Cached
     private float upperBound;
     private Rect hCheck;
-
     private UINumberDamage storedDN;
-
+    #endregion
+    #region Properties
+    protected Vector2 playerDistance;
+    protected bool inLos;
+    #endregion
+    #region Timers
     private float iFrames;
     private int dmgCombo;
     private float damageTime;
-
-    protected Vector2 playerDistance;
-    protected bool inLos;
-
+    #endregion
+    #region Visual
     private float alpha;
     private float bodyScaleX = 1f;
     private float bodyTargX = 1f;
     private float bodyCurX;
     private int currentState;
     private float lockedUntil;
-
+    #endregion
+    // kill me
+    #region Resources
+    private static Sprite foundS, lostS;
+    private static PhysicsMaterial2D material;
+    private static AudioA hit, hitno, found, lost, splash;
+    private static GameObject rHpBar, deathFx, tpPickup, damageNumber;
+    protected static AudioClip[] statusClips;
     protected static readonly int
-        Idle = Animator.StringToHash("Idle"),
-        Hurt = Animator.StringToHash("Hurt");
+    Idle = Animator.StringToHash("Idle"),
+    Hurt = Animator.StringToHash("Hurt");
+    #endregion
 
+    #region Initialization
     private static bool loaded;
     protected override void Awake()
     {
@@ -90,7 +97,7 @@ public class Enemy : Entity
 
         sr = body.GetComponent<SpriteRenderer>();
         animator = body.GetComponent<Animator>();
-        se = new float[System.Enum.GetValues(typeof(Status)).Length];
+        statusEffects = new float[System.Enum.GetValues(typeof(Status)).Length];
     }
 
     protected virtual void Start()
@@ -120,6 +127,7 @@ public class Enemy : Entity
         emoticon = iconNew.AddComponent<SpriteRenderer>();
         emoticon.color = Utils.clearW;
     }
+    #endregion
 
     private void FixedUpdate()
     {
@@ -132,6 +140,7 @@ public class Enemy : Entity
         UpdateStatuses();
     }
 
+    #region Base update loop
     /// <summary>
     /// Override for logic that runs before everything else.
     /// </summary>
@@ -244,12 +253,14 @@ public class Enemy : Entity
     /// </summary>
     private void UpdateStatuses()
     {
-        for (int i = 0; i < se.Length; i++)
+        for (int i = 0; i < statusEffects.Length; i++)
         {
-            Utils.TimeDown(ref se[i]);
+            Utils.TimeDown(ref statusEffects[i]);
         }
     }
+    #endregion
 
+    #region Functions
     public override bool Damage(DamageInfo inf)
     {
         if (iFrames > 0f && !inf.ignoreIFrames) return false;
@@ -312,11 +323,11 @@ public class Enemy : Entity
     {
         if (time != -1f)
         {
-            if (time > se[(int)status])
-                se[(int)status] = time;
+            if (time > statusEffects[(int)status])
+                statusEffects[(int)status] = time;
         }
         else
-            se[(int)status] = 0f;
+            statusEffects[(int)status] = 0f;
     }
 
     protected virtual void Respawn()
@@ -342,4 +353,5 @@ public class Enemy : Entity
     }
 
     protected virtual bool CollCheck() => false;
+    #endregion
 }
