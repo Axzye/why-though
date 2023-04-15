@@ -314,7 +314,6 @@ public class Player : Entity
                         AudioManager.Play(clips[4]);
                         dashTime = 0.15f;
                         dashCooldown = 0.4f;
-                        noControlTime = 0.15f;
                         dashDir = facing;
                     }
                 }
@@ -360,9 +359,40 @@ public class Player : Entity
             wallSlideDir = 0;
             flyTime = maxFlyTime;
             #endregion
-            UpdateCrouchSlide();
+            #region Crouch n' Slide
+            if (noControlTime > 0f)
+            {
+                // Cancel crouch
+                crouching = false;
+            }
+            else
+            {
+                if (inCrouch)
+                {
+                    // Start crouch
+                    if (!crouching)
+                    {
+                        playerBody.scale.y = 0.8f;
+                        crouching = true;
+                        if (inMove != 0f)
+                        {
+                            sliding = true;
+                            slideStoredVel = speed * slideMult * Mathf.Round(inMove);
+                            // Uncomment to store speed
+                            // (currently broken, you can spam to gain infinite speed)
+                            // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                        }
+                    }
+                }
+                else if (crouching)
+                {
+                    crouching = false;
+                    sliding = false;
+                }
+            }
+            #endregion
             #region Move
-            if (!sliding)
+            if (!(sliding || dashTime > 0f))
             {
                 if (noControlTime == 0f)
                 {
@@ -389,10 +419,13 @@ public class Player : Entity
             sliding = false;
             #endregion
             #region Air movement
-            if (noControlTime == 0f)
+            if (!(dashTime > 0f))
             {
-                vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
-                    airSmooth, Mathf.Infinity, Time.deltaTime);
+                if (noControlTime == 0f)
+                {
+                    vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
+                        airSmooth, Mathf.Infinity, Time.deltaTime);
+                }
             }
 
             if (inCrouch)
@@ -423,6 +456,8 @@ public class Player : Entity
         {
             if (!audioSldEx.isPlaying)
                 audioSldEx.Play();
+
+            audioSldEx.volume = vel.x / (speed * slideMult);
         }
         else
         {
@@ -430,12 +465,6 @@ public class Player : Entity
                 audioSldEx.Stop();
         }
 
-        // reset input
-        inSwitch = -1;
-        for (int i = 0; i < inSkill.Length; i++) inSkill[i] = false;
-        inSkillA = false;
-        #endregion
-        #region Audio n' Visuals
         if (onGround && targetX != 0f)
         {
             fsCycle += Time.deltaTime * 3f;
@@ -447,11 +476,18 @@ public class Player : Entity
             }
         }
 
+        // reset input
+        inSwitch = -1;
+        for (int i = 0; i < inSkill.Length; i++) inSkill[i] = false;
+        inSkillA = false;
+        #endregion
+        #region Visuals
         if (iFrames > 0f && dashTime == 0f)
             sr.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
         else
             sr.color = Color.white;
 
+        // Move this to respective states
         playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
 
         //DEBUG
@@ -574,41 +610,6 @@ public class Player : Entity
                 AudioManager.Play(clips[5]);
             }
         }
-
-        void UpdateCrouchSlide()
-        {
-            if (noControlTime > 0f)
-            {
-                // Cancel crouch
-                crouching = false;
-            }
-            else
-            {
-                if (inCrouch)
-                {
-                    // Start crouch
-                    if (!crouching)
-                    {
-                        playerBody.scale.y = 0.8f;
-                        crouching = true;
-                        if (inMove != 0f)
-                        {
-                            sliding = true;
-                            slideStoredVel = speed * slideMult * Mathf.Round(inMove);
-                            // Uncomment to store speed during dashes
-                            // (currently broken, you can spam to gain infinite speed)
-                            // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
-                        }
-                    }
-                }
-                else if (crouching)
-                {
-                    crouching = false;
-                    sliding = false;
-                }
-            }
-        }
-
         int GetAnimationState()
         {
             if (damageTime > 0f) return Hurt;
