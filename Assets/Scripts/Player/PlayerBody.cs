@@ -23,8 +23,8 @@ public class PlayerBody : MonoBehaviour
     {
         if (snapToFacing)
             scale.x = target.x = player.facing ? -1f : 1f;
-        else if (!weapon.thrown) // dumb workaround
-            target.x = weapon.flipped ? 1f : -1f;
+        else if (!weapon.Thrown) // ??
+            target.x = weapon.Flipped ? 1f : -1f;
 
         scale = Vector2.SmoothDamp(scale, target, ref current, 0.1f, Mathf.Infinity);
 

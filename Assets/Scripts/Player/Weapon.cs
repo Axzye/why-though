@@ -11,17 +11,17 @@ public class Weapon : MonoBehaviour
     #endregion
     #region References
     [Header("References")]
-    public GameObject tfx;
-    public GameObject image;
+    public GameObject throwFx;
+    public GameObject visual;
     public Light2D light2d;
+    public GameObject coin;
     public AudioA coinFlip;
     public AudioA throwClip;
     public AudioA throwHitClip;
     public AudioA catchClip;
-    public GameObject coin;
 
-    private Rigidbody2D rb2d;
-    private SpriteRenderer sr;
+    private Rigidbody2D playerRb;
+    private SpriteRenderer spriteRenderer;
     private ParticleSystem ptcSystem;
 
     private Camera main;
@@ -35,8 +35,8 @@ public class Weapon : MonoBehaviour
     private float actualAngle;
     private float currentAngle;
     private float offset;
-    public bool flipped;
-    public float flash;
+    private bool flipped;
+    private float flash;
 
     private InputMaster input;
     private Vector2 mousePos;
@@ -45,7 +45,7 @@ public class Weapon : MonoBehaviour
     // that's a lot of variables for one skill...
     private AudioSource throwAudios;
     private TrailRenderer throwTrail;
-    public bool thrown;
+    private bool thrown;
     private float throwTime;
     private float throwFreeze;
     private Vector2 throwAngle;
@@ -67,15 +67,18 @@ public class Weapon : MonoBehaviour
             return true;
         }
     }
+    public bool Flipped { get { return flipped; } }
+    public float Flash { get { return flash; } }
+    public bool Thrown { get { return thrown; } }
     #endregion
 
     #region Initialize
     private void Awake()
     {
-        throwAudios = tfx.GetComponent<AudioSource>();
-        throwTrail = tfx.GetComponent<TrailRenderer>();
-        sr = image.GetComponent<SpriteRenderer>();
-        ptcSystem = image.GetComponent<ParticleSystem>();
+        throwAudios = throwFx.GetComponent<AudioSource>();
+        throwTrail = throwFx.GetComponent<TrailRenderer>();
+        spriteRenderer = visual.GetComponent<SpriteRenderer>();
+        ptcSystem = visual.GetComponent<ParticleSystem>();
         main = Camera.main;
         input = new();
     }
@@ -88,7 +91,7 @@ public class Weapon : MonoBehaviour
         player = Player.Inst;
         party = Party.Inst;
         current = party.CurrentAlly;
-        rb2d = player.GetComponent<Rigidbody2D>();
+        playerRb = player.GetComponent<Rigidbody2D>();
     }
     #endregion
 
@@ -107,21 +110,20 @@ public class Weapon : MonoBehaviour
         if (thrown)
         {
             actualAngle += Time.deltaTime * 360f * 3f;
-            image.transform.localPosition = Vector3.zero;
-            image.transform.rotation = Quaternion.AngleAxis(actualAngle, Vector3.forward);
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.rotation = Quaternion.AngleAxis(actualAngle, Vector3.forward);
         }
         else
         {
             float yOffset = -0.0625f;
-            if (player.crouching) yOffset = -0.375f;
             transform.localPosition = Vector3.up * yOffset;
 
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
-            image.transform.localPosition = 0.15f * offset * Vector2.left;
+            visual.transform.localPosition = 0.15f * offset * Vector2.left;
 
-            sr.flipY = flipped;
-            image.transform.rotation = Quaternion.AngleAxis(actualAngle + offset * (flipped ? -15f : 15f) + throwCatchSpin, Vector3.forward);
+            spriteRenderer.flipY = flipped;
+            visual.transform.rotation = Quaternion.AngleAxis(actualAngle + offset * (flipped ? -15f : 15f) + throwCatchSpin, Vector3.forward);
 
             actualAngle = Mathf.SmoothDampAngle(actualAngle, angle, ref currentAngle, 0.05f);
         }
@@ -141,51 +143,59 @@ public class Weapon : MonoBehaviour
         Utils.TimeDown(ref fireTime);
         #endregion
 
-        if (!thrown)
+        if (!player.Crouching)
         {
-            #region Update default
-            throwTrail.emitting = false;
-
-            if (inFire && CanFire)
+            spriteRenderer.enabled = true;
+            if (!thrown)
             {
-                Fire();
+                #region Update default
+                throwTrail.emitting = false;
+
+                if (inFire && CanFire)
+                {
+                    Fire();
+                }
+
+                if (offset > 0.05f)
+                    offset *= (current.id == Mb.Leif) ? 0.9f : 0.8f;
+                else
+                    offset = 0f;
+
+                if (throwCatchSpin < -1f)
+                    throwCatchSpin *= 0.8f;
+                else
+                    throwCatchSpin = 0f;
+                #endregion
             }
-
-            if (offset > 0.05f)
-                offset *= (current.id == Mb.Leif) ? 0.9f : 0.8f;
             else
-                offset = 0f;
+            {
+                #region Update when thrown
+                if (throwTime > 0.5f && (transform.position - player.transform.position).sqrMagnitude < 0.5f)
+                    Catch();
 
-            if (throwCatchSpin < -1f)
-                throwCatchSpin *= 0.8f;
-            else
-                throwCatchSpin = 0f;
-            #endregion
+                Vector2 vel;
+                if (throwTime > throwMaxTime)
+                {
+                    vel = (player.transform.position - transform.position).normalized * throwSpeed;
+                    throwTrail.emitting = false;
+                }
+                else
+                {
+                    vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
+                    vel += throwAddVel / (throwTime + 1f);
+                    throwTrail.emitting = true;
+                    ThrowCheckForColl();
+                }
+                throwTime += Time.deltaTime;
+
+                if (!Utils.TimeDown(ref throwFreeze))
+                    transform.position += (Vector3)(vel * Time.deltaTime);
+                #endregion
+            }
         }
         else
         {
-            #region Update when thrown
-            if (throwTime > 0.5f && (transform.position - player.transform.position).sqrMagnitude < 0.5f)
-                Catch();
-
-            Vector2 vel;
-            if (throwTime > throwMaxTime)
-            {
-                vel = (player.transform.position - transform.position).normalized * throwSpeed;
-                throwTrail.emitting = false;
-            }
-            else
-            {
-                vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
-                vel += throwAddVel / (throwTime + 1f);
-                throwTrail.emitting = true;
-                ThrowCheckForColl();
-            }
-            throwTime += Time.deltaTime;
-
-            if (!Utils.TimeDown(ref throwFreeze))
-                transform.position += (Vector3)(vel * Time.deltaTime);
-            #endregion
+            spriteRenderer.enabled = false;
         }
 
         #region Update all
@@ -208,7 +218,7 @@ public class Weapon : MonoBehaviour
         if (flash > 0f)
         {
             flash -= Time.deltaTime;
-            if (flash < 0.05f) sr.sprite = current.gunA;
+            if (flash < 0.05f) spriteRenderer.sprite = current.gunA;
         }
         #endregion
     }
@@ -253,7 +263,7 @@ public class Weapon : MonoBehaviour
                         SpawnBullet(-12f + i * 8f + Random.Range(-3f, 3f), 1);
                 }
 
-                if (!player.crouching) player.ApplyRecoil(mousePos);
+                if (!player.Crouching) player.ApplyRecoil(mousePos);
                 break;
             case Mb.Leif:
                 break;
@@ -266,7 +276,7 @@ public class Weapon : MonoBehaviour
         FollowCamera.Shake(current.recAmt * 0.4f);
 
         ptcSystem.Emit(1);
-        sr.sprite = current.gunB;
+        spriteRenderer.sprite = current.gunB;
     }
 
     private void SpawnBullet(float addAngle, int damage)
@@ -277,7 +287,7 @@ public class Weapon : MonoBehaviour
         bullet.inf = current.infBase;
         bullet.inf.damage = damage;
 
-        if (player.crouching)
+        if (player.Crouching)
             addAngle *= 0.5f;
 
         proj.transform.rotation = Quaternion.AngleAxis(angle + addAngle, Vector3.forward);
@@ -334,7 +344,7 @@ public class Weapon : MonoBehaviour
     #region External
     public void SwitchAlly()
     {
-        sr.sprite = party.CurrentAlly.gunA;
+        spriteRenderer.sprite = party.CurrentAlly.gunA;
     }
 
     public void FlipCoin()
@@ -343,7 +353,7 @@ public class Weapon : MonoBehaviour
         Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
         obj.transform.rotation = Quaternion.AngleAxis(actualAngle, Vector3.forward);
         obj.transform.position += Vector3.up * 0.25f;
-        rb.velocity = (Vector2)transform.right * 8f + Vector2.up * 6f + rb2d.velocity * 0.5f;
+        rb.velocity = (Vector2)transform.right * 8f + Vector2.up * 6f + this.playerRb.velocity * 0.5f;
 
         AudioManager.Play(coinFlip);
     }
@@ -357,9 +367,9 @@ public class Weapon : MonoBehaviour
         throwTime = 0f;
         throwAmountHit = 0;
         throwAngle = mousePos.normalized;
-        throwAddVel = rb2d.velocity * 0.5f;
+        throwAddVel = playerRb.velocity * 0.5f;
 
-        sr.sprite = bmSprite;
+        spriteRenderer.sprite = bmSprite;
         AudioManager.Play(throwClip);
         throwAudios.Play();
     }
@@ -373,7 +383,7 @@ public class Weapon : MonoBehaviour
         actualAngle = angle;
         if (throwAmountHit > 0) player.SpawnActionText(Mathf.Max(throwAmountHit - 1, 0), 0.5f);
 
-        sr.sprite = party.CurrentAlly.gunA;
+        spriteRenderer.sprite = party.CurrentAlly.gunA;
         AudioManager.Play(catchClip);
         throwAudios.Stop();
     }

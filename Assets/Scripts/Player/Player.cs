@@ -6,7 +6,6 @@ public class Player : Entity
     public static Player Inst { get; private set; }
 
     // Many variables
-    // Ideally these would all be private but alas, spaghetti
     #region Stats
     [Header("Stats")]
     public float groundSmooth = 0.08f;
@@ -71,7 +70,7 @@ public class Player : Entity
     private int wallSlideDir;
 
     private float targetX;
-    public bool crouching;
+    private bool crouching;
 
     private bool endedJump;
     private bool canEndJump;
@@ -89,9 +88,9 @@ public class Player : Entity
     private bool dashDir;
     private bool dashSpawnFxFrame;
 
-    public float damageTime;
-    public float iFrames;
-    public float shieldTime;
+    private float damageTime;
+    private float iFrames;
+    private float shieldTime;
     private float healWait;
     #endregion
     #region Visual
@@ -107,6 +106,13 @@ public class Player : Entity
     private int inSwitch;
     private bool[] inSkill = new bool[3];
     private bool inSkillA, inSkillAHeld;
+    #endregion
+    // this doesn't fix anything...
+    #region Properties
+    public bool Crouching { get { return crouching; } }
+    public float DamageTime { get { return damageTime; } }
+    public float IFrames { get { return iFrames; } }
+    public float ShieldTime { get { return shieldTime; } }
     #endregion
 
     #region Initialize
@@ -457,7 +463,7 @@ public class Player : Entity
             if (!audioSldEx.isPlaying)
                 audioSldEx.Play();
 
-            audioSldEx.volume = vel.x / (speed * slideMult);
+            audioSldEx.volume = Mathf.Abs(vel.x) / (speed * slideMult);
         }
         else
         {
@@ -636,7 +642,7 @@ public class Player : Entity
     #region Internal only
     private void Cut()
     {
-        bool dir = dashTime > 0f ? facing : !weapon.flipped;
+        bool dir = dashTime > 0f ? facing : !weapon.Flipped;
 
         GameManager.Spawn(swingFx, transform.position)
             .GetComponent<SpriteRenderer>().flipX = dir;
@@ -659,14 +665,14 @@ public class Player : Entity
                     iFrames = 0.25f
                 };
 
-                if (dashTime > 0f)
+                /*if (dashTime > 0f)
                 {
                     inf.damage *= 2;
                     inf.addForce.x = dir ? 8f : -8f;
                     inf.addForce.y = 3f;
-                }
+                }*/
                 enemy.Damage(inf);
-                GameManager.Freeze(1f / 60f);
+                GameManager.Freeze(2f / 60f);
             }
 
             if (coll.TryGetComponent(out Projectile proj))
@@ -829,7 +835,7 @@ public class Player : Entity
 
         bool CanSwitch()
         {
-            if (weapon.thrown) return false;
+            if (weapon.Thrown) return false;
             if (healWait != 0f) return false;
             return true;
         }
@@ -890,6 +896,7 @@ public class Player : Entity
         dashTime = 0f;
         rb.velocity = newVel;
         noControlTime = 0.1f;
+        notOnGroundTime = 0.1f;
     }
 
     #endregion

@@ -48,7 +48,7 @@ public class Coin : Projectile
                 Die();
         }
 
-        if (Player.Inst.weapon.thrown)
+        if (Player.Inst.weapon.Thrown)
         {
             if ((transform.position - Player.Inst.weapon.transform.position).sqrMagnitude < 0.12f)
             {

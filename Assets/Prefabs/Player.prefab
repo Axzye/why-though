@@ -5486,11 +5486,6 @@ MonoBehaviour:
   audioSldEx: {fileID: 3913099721750305409}
   fsFx: {fileID: 5606865875678130343}
   shield: {fileID: 1740512668204477019}
-  crouching: 0
-  canEndJump: 0
-  damageTime: 0
-  iFrames: 0
-  shieldTime: 0
 --- !u!50 &6060535854529398927
 Rigidbody2D:
   serializedVersion: 4
@@ -5590,9 +5585,10 @@ MonoBehaviour:
   throwSpeed: 20
   throwKnockback: 4
   throwMaxTime: 1.1
-  tfx: {fileID: 2159668000502738421}
-  image: {fileID: 6815556461995380906}
+  throwFx: {fileID: 2159668000502738421}
+  visual: {fileID: 6815556461995380906}
   light2d: {fileID: 903170379247128468}
+  coin: {fileID: 4098616837789810485, guid: ed55d81de22890647a70c9a50039f3a5, type: 3}
   coinFlip:
     clip: {fileID: 8300000, guid: 4ceb3d50f448d2c40a489c04a286239a, type: 3}
     clipRandom: []
@@ -5617,7 +5613,6 @@ MonoBehaviour:
     volume: 0.5
     pitch: 1
     pitchVar: 0
-  coin: {fileID: 4098616837789810485, guid: ed55d81de22890647a70c9a50039f3a5, type: 3}
   flipped: 0
   flash: 0
   thrown: 0

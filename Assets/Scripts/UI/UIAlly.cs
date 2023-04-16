@@ -49,12 +49,12 @@ public class UIAlly : MonoBehaviour
         {
             rt.anchoredPosition += Vector2.down * Mathf.Abs(Mathf.Sin(Time.time * Mathf.PI)) * 2f;
 
-            iconFlash.color = Color.Lerp(Utils.clearW, Color.white, weapon.flash * 6f);
+            iconFlash.color = Color.Lerp(Utils.clearW, Color.white, weapon.Flash * 6f);
 
-            if (player.damageTime > 0.25f)
+            if (player.DamageTime > 0.25f)
             {
-                rt.anchoredPosition += Random.insideUnitCircle * player.damageTime * 4f;
-                image.color = Color.Lerp(defCol, Color.red, player.damageTime);
+                rt.anchoredPosition += Random.insideUnitCircle * player.DamageTime * 4f;
+                image.color = Color.Lerp(defCol, Color.red, player.DamageTime);
                 icon.sprite = hurt;
             }
         }
