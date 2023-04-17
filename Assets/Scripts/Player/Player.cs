@@ -398,7 +398,7 @@ public class Player : Entity
             }
             #endregion
             #region Move
-            if (!(sliding || dashTime > 0f))
+            if (!(sliding))
             {
                 if (noControlTime == 0f)
                 {
@@ -425,14 +425,11 @@ public class Player : Entity
             sliding = false;
             #endregion
             #region Air movement
-            if (!(dashTime > 0f))
-            {
                 if (noControlTime == 0f)
                 {
                     vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
                         airSmooth, Mathf.Infinity, Time.deltaTime);
                 }
-            }
 
             if (inCrouch)
             {
@@ -493,7 +490,7 @@ public class Player : Entity
         else
             sr.color = Color.white;
 
-        // Move this to respective states
+        // TODO: Move this to respective states
         playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
 
         //DEBUG
@@ -588,8 +585,6 @@ public class Player : Entity
 
         void UpdateDash()
         {
-            if (noControlTime > 0f) return;
-
             vel.x = dashDir ? 15f : -15f;
             vel.y = 0f;
             gravity = 0f;
