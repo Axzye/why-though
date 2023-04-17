@@ -5357,7 +5357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2217a869c14a39a47b195205054b8cf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  facing: 1
+  facingRight: 1
   groundSmooth: 0.1
   speed: 5.5
   airSmooth: 0.2
@@ -5486,6 +5486,8 @@ MonoBehaviour:
   audioSldEx: {fileID: 3913099721750305409}
   fsFx: {fileID: 5606865875678130343}
   shield: {fileID: 1740512668204477019}
+  dashTargetSpeed: 8
+  dashToTargTime: 0.25
 --- !u!50 &6060535854529398927
 Rigidbody2D:
   serializedVersion: 4
@@ -5613,9 +5615,6 @@ MonoBehaviour:
     volume: 0.5
     pitch: 1
     pitchVar: 0
-  flipped: 0
-  flash: 0
-  thrown: 0
 --- !u!1 &6060535854772640756
 GameObject:
   m_ObjectHideFlags: 0

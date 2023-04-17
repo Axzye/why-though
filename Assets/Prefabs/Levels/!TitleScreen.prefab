@@ -659,8 +659,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Move:\nJump:\nShoot:\nSwitch:\nSkills:\nAbility:\nPause: \n\nRebinding
-    TBD"
+  m_text: "Move:\nJump:\nShoot:\nSwitch:\nSkills:\nFly/Dash:\nPause: \n\nYou can
+    also right click for skill 1.\nRebinding TBD"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a0466240b4c8e7a478421ac6677f2d56, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 8a4cda551211ee94da33d85f9851a239, type: 2}
@@ -2359,8 +2359,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: -2.865, y: -12.546, z: 0.637}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 38, y: -58}
-  m_SizeDelta: {x: 60, y: 100}
+  m_AnchoredPosition: {x: 38, y: -80}
+  m_SizeDelta: {x: 60, y: 140}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7275850119154414133
 CanvasRenderer:
@@ -2393,16 +2393,25 @@ MonoBehaviour:
   m_text: 'Thanks for trying this game out! Some important stuff first:
 
 
-    Spoilers
-    for Chapter 7+! Go play Bug Fables already, you''re missing out.
+    If
+    you haven''t already played Bug Fables, go do that.
 
 
-    This is
-    a WIP, so <color=#1133BB>everything is subject to change</color>. Feedback is
-    appreciated!
+    This is a WIP, so <color=#1133BB>everything
+    is subject to change</color>. Feedback is appreciated!
 
 
-'
+    Changelog:
+
+    -
+    Added sliding
+
+    - Updated visuals
+
+    - Kabbu has taken some pointers from
+    Pizza Tower
+
+    - A lot of behind the scenes stuff'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a0466240b4c8e7a478421ac6677f2d56, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 8a4cda551211ee94da33d85f9851a239, type: 2}
