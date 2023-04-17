@@ -3,7 +3,7 @@ using UnityEngine;
 public abstract class Entity : MonoBehaviour, ITarget
 {
     protected Vector2 startPos;
-    public bool facing = true;
+    public bool facingRight = true;
 
 
     protected virtual void Awake()

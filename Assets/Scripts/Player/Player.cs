@@ -172,8 +172,8 @@ public class Player : Entity
         float gravityCap = maxGrav;
 
         // check movement input and update facing direction
-        if (inMove > 0f && !facing) facing = true;
-        else if (inMove < 0f && facing) facing = false;
+        if (inMove > 0f && !facingRight) facingRight = true;
+        else if (inMove < 0f && facingRight) facingRight = false;
 
         if (inSwitch > -1)
         {
@@ -320,7 +320,7 @@ public class Player : Entity
                         AudioManager.Play(clips[4]);
                         dashTime = 0.15f;
                         dashCooldown = 0.4f;
-                        dashDir = facing;
+                        dashDir = facingRight;
                     }
                 }
                 break;
@@ -533,8 +533,8 @@ public class Player : Entity
             {
                 case 0 when dashTime > 0f || sliding:
                     AudioManager.Play(clips[17]);
-                    vel.x = (facing ? 1f : -1f) * 10f;
-                    vel.y *= 0.7f;
+                    vel.x = (facingRight ? 1f : -1f) * 9f;
+                    vel.y *= 0.6666f;
                     noControlTime = 0.15f;
                     canEndJump = false;
                     break;
@@ -597,7 +597,7 @@ public class Player : Entity
             if (dashSpawnFxFrame)
             {
                 GameObject dt = GameManager.Spawn(dashTrailFx, transform.position);
-                dt.transform.localScale = new(facing ? -1f : 1f, 1f);
+                dt.transform.localScale = new(facingRight ? -1f : 1f, 1f);
                 dashSpawnFxFrame = false;
             }
             else dashSpawnFxFrame = true;
@@ -606,7 +606,7 @@ public class Player : Entity
                 new(0.6f, 0.85f), 0f, 1);
             if (check)
             {
-                vel = new(facing ? -4f : 4f, 6f);
+                vel = new(facingRight ? -4f : 4f, 6f);
                 dashTime = 0f;
                 noControlTime = 0.1f;
                 notOnGroundTime = 0.1f;
@@ -642,7 +642,7 @@ public class Player : Entity
     #region Internal only
     private void Cut()
     {
-        bool dir = dashTime > 0f ? facing : !weapon.Flipped;
+        bool dir = dashTime > 0f ? facingRight : !weapon.Flipped;
 
         GameManager.Spawn(swingFx, transform.position)
             .GetComponent<SpriteRenderer>().flipX = dir;

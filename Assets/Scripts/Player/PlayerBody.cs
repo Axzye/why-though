@@ -22,7 +22,7 @@ public class PlayerBody : MonoBehaviour
     private void FixedUpdate()
     {
         if (snapToFacing)
-            scale.x = target.x = player.facing ? -1f : 1f;
+            scale.x = target.x = player.facingRight ? -1f : 1f;
         else if (!weapon.Thrown) // ??
             target.x = weapon.Flipped ? 1f : -1f;
 

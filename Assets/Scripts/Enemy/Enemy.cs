@@ -196,7 +196,7 @@ public class Enemy : Entity
     /// </summary>
     protected virtual void UpdateVisual()
     {
-        bodyTargX = facing ? 1f : -1f;
+        bodyTargX = facingRight ? 1f : -1f;
         bodyScaleX = Mathf.SmoothDamp(bodyScaleX, bodyTargX, ref bodyCurX, 0.1f, Mathf.Infinity);
         body.transform.localScale = new(bodyScaleX, 1f, 1f);
         emoticon.color = Color.Lerp(Color.white, Utils.clearW, alpha * 3f);

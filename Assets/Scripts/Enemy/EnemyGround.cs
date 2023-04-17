@@ -58,7 +58,7 @@ public class EnemyGround : Enemy
         if (onGround)
         {
             if (Physics2D.OverlapCircle(transform.position
-                    + new Vector3(jCheck.x * (facing ? 1f : -1f), jCheck.y),
+                    + new Vector3(jCheck.x * (facingRight ? 1f : -1f), jCheck.y),
                     0.1f, collLayers))
             {
                 if (timeSinceLastJump > 0.5f)
@@ -93,7 +93,7 @@ public class EnemyGround : Enemy
         else
             velTargX = speed * CalcWander();
 
-        if (velTargX != 0f) facing = velTargX > 0f;
+        if (velTargX != 0f) facingRight = velTargX > 0f;
 
         base.UpdateAI();
     }
