@@ -1,16 +1,15 @@
 using UnityEngine;
 
-[RequireComponent(typeof(DialogueTrigger))]
 public class NPC : Interactable
 {
-    private DialogueTrigger dl;
+    public DlStory text;
+
     private SpriteRenderer indicator;
     private LayerMask playerLayer = 64;
 
     protected override void Awake()
     {
         base.Awake();
-        dl = GetComponent<DialogueTrigger>();
 
         Sprite indS = Resources.Load<Sprite>("Sprites/UI/button_f");
         GameObject indNew = new();
@@ -32,8 +31,13 @@ public class NPC : Interactable
             indicator.transform.localPosition = (Mathf.Sin(Time.time * Mathf.PI * 0.5f) * (1f / 16f) + 1f)  * Vector2.up;
             if (input.Player.Use.triggered)
             {
-                dl.Trigger();
+                StartDialogue();
             }
         }
+    }
+
+    protected virtual void StartDialogue()
+    {
+        DialogueManager.Inst.StartDialogue(text);
     }
 }
