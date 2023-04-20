@@ -17,7 +17,7 @@ MonoBehaviour:
     skills:
     - _name: Cut
       icon: {fileID: -257777989, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
-      cooldown: 0.5
+      cooldown: 0.25
       cost: 0
     - _name: 
       icon: {fileID: 339371275, guid: d4ca38b84325cd24e92682cb9421259c, type: 3}
