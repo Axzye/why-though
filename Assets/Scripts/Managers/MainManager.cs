@@ -22,6 +22,14 @@ public class MainManager : MonoSingleton<MainManager>
         Load(0);
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.K))
+            StartCoroutine(LoadLevel(1));
+        if (Input.GetKeyDown(KeyCode.L))
+            StartCoroutine(LoadLevel(2));
+    }
+
     public IEnumerator LoadLevel(int index)
     {
         transitioning = true;
@@ -39,7 +47,7 @@ public class MainManager : MonoSingleton<MainManager>
     private void Load(int index)
     {
         Destroy(levelObj);
-        // TEMP! ugh...
+        // TODO: ughhhhhh
         if (index == 0)
         {
             if (gameObj)

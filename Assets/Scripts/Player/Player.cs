@@ -17,7 +17,10 @@ public class Player : Entity
     public float setCoyoteTime = 0.08f;
     public float slopeCorrect = 0.5f;
     public float slideMult = 1.5f, slideSpeedLoss = 0.2f;
+    public LayerMask groundLayers = 9;
     public Rect gCheck = new(new(0f, -0.5f), new(0.42f, 0.1f));
+    private Rect defCollBox;
+    public Rect crouchCollBox;
     #endregion
     #region References
     [Header("References")]
@@ -37,9 +40,10 @@ public class Player : Entity
     public ParticleSystem fsFx;
     public BubbleShield shield;
     private Party party;
-    private SpriteRenderer sr;
+    private SpriteRenderer srenderer;
     private Animator animator;
     private Rigidbody2D rb;
+    private BoxCollider2D coll;
     #endregion
     #region Resources
     private static readonly int
@@ -118,13 +122,14 @@ public class Player : Entity
     #region Initialize
     protected override void Awake()
     {
-        base.Awake();
+        //base.Awake();
 
         Inst = this;
         print("Player loaded in");
 
         rb = GetComponent<Rigidbody2D>();
-        sr = playerBody.GetComponent<SpriteRenderer>();
+        coll = GetComponent<BoxCollider2D>();
+        srenderer = playerBody.GetComponent<SpriteRenderer>();
         animator = playerBody.GetComponent<Animator>();
         input = new();
     }
@@ -133,11 +138,25 @@ public class Player : Entity
     {
         ResetPos();
         party = Party.Inst;
-        transform.position = startPos;
+        defCollBox = new(coll.offset, coll.size);
     }
 
-    private void OnEnable() => input.Player.Enable();
-    private void OnDisable() => input.Player.Disable();
+    private void OnLoad(Level level, int _)
+    {
+        transform.position = level.spawnPos[0];
+    }
+
+    private void OnEnable() 
+    { 
+        input.Player.Enable(); 
+        MainManager.OnLoad += OnLoad;
+    }
+
+    private void OnDisable()
+    {
+        input.Player.Disable();
+        MainManager.OnLoad -= OnLoad;
+    }
     #endregion
 
     // This is one bloated update loop
@@ -212,7 +231,7 @@ public class Player : Entity
         if (notOnGroundTime == 0f
             && Physics2D.OverlapBox(
                 (Vector2)transform.position + gCheck.position,
-                gCheck.size, 0f, 9))
+                gCheck.size, 0f, groundLayers))
         {
             onGround = true;
             if (!wasOnGround)
@@ -242,7 +261,7 @@ public class Player : Entity
         if (onGround)
         {
             // Attempt vertical normalisation
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, 9);
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down * 0.5f, 1f, groundLayers);
             if (hit.collider)
             {
                 lastTouchedGround = transform.position;
@@ -336,7 +355,7 @@ public class Player : Entity
         #endregion
         #region Whatever SkillA is
         // ??
-        flying = false; 
+        flying = false;
         if (party.CurrentID == Mb.Vi
             && inSkillAHeld)
         {
@@ -353,7 +372,6 @@ public class Player : Entity
         #region Update movement
         // Find target velocity
         targetX = inMove * speed;
-        if (crouching) targetX *= 0.5f;
 
         if (onGround)
         {
@@ -366,34 +384,47 @@ public class Player : Entity
             flyTime = maxFlyTime;
             #endregion
             #region Crouch n' Slide
-            if (noControlTime > 0f)
+            if (!crouching)
             {
-                // Cancel crouch
-                crouching = false;
-            }
-            else
-            {
+                coll.offset = defCollBox.position;
+                coll.size = defCollBox.size;
+
                 if (inCrouch)
                 {
                     // Start crouch
-                    if (!crouching)
+                    playerBody.scale.y = 0.8f;
+                    crouching = true;
+                    if (inMove != 0f)
                     {
-                        playerBody.scale.y = 0.8f;
-                        crouching = true;
-                        if (inMove != 0f)
-                        {
-                            sliding = true;
-                            slideStoredVel = speed * slideMult * Mathf.Round(inMove);
-                            // Uncomment to store speed
-                            // (currently broken, you can spam to gain infinite speed)
-                            // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
-                        }
+                        sliding = true;
+                        slideStoredVel = speed * slideMult * Mathf.Round(inMove);
+                        // Uncomment to store speed
+                        // (broken, you can spam to gain infinite speed)
+                        // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
                     }
                 }
-                else if (crouching)
-                {
+            }
+            else
+            {
+                coll.offset = crouchCollBox.position;
+                coll.size = crouchCollBox.size;
+
+                targetX *= 0.5f;
+
+                if (noControlTime > 0f)
                     crouching = false;
-                    sliding = false;
+
+                if (!inCrouch)
+                {
+                    // Don't end crouch if it would collide with ground
+                    if (!Physics2D.OverlapBox(
+                        (Vector2)transform.position + crouchCollBox.position,
+                        crouchCollBox.size,
+                        0f, 0))
+                    {
+                        crouching = false;
+                        sliding = false;
+                    }
                 }
             }
             #endregion
@@ -425,11 +456,11 @@ public class Player : Entity
             sliding = false;
             #endregion
             #region Air movement
-                if (noControlTime == 0f)
-                {
-                    vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
-                        airSmooth, Mathf.Infinity, Time.deltaTime);
-                }
+            if (noControlTime == 0f)
+            {
+                vel.x = Mathf.SmoothDamp(vel.x, targetX, ref currentVel,
+                    airSmooth, Mathf.Infinity, Time.deltaTime);
+            }
 
             if (inCrouch)
             {
@@ -449,7 +480,7 @@ public class Player : Entity
             if (!audioEx.isPlaying)
                 audioEx.Play();
         }
-        else 
+        else
         {
             if (audioEx.isPlaying)
                 audioEx.Stop();
@@ -486,19 +517,19 @@ public class Player : Entity
         #endregion
         #region Visuals
         if (iFrames > 0f && dashTime == 0f)
-            sr.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
+            srenderer.color = Time.time % 0.1f >= 0.05f ? Color.white : hurtColor;
         else
-            sr.color = Color.white;
+            srenderer.color = Color.white;
 
         // TODO: Move this to respective states
         playerBody.snapToFacing = wallSliding || dashTime > 0f || sliding;
 
         //DEBUG
-        sr.color = Color.white;
-        if (damageTime > 0f) sr.color = Color.red;
-        if (notOnGroundTime > 0f) sr.color = Color.green;
-        if (noControlTime > 0f) sr.color = Color.yellow;
-        if (dashTime > 0f) sr.color = Color.blue;
+        srenderer.color = Color.white;
+        if (damageTime > 0f) srenderer.color = Color.red;
+        if (notOnGroundTime > 0f) srenderer.color = Color.green;
+        if (noControlTime > 0f) srenderer.color = Color.yellow;
+        if (dashTime > 0f) srenderer.color = Color.blue;
 
         animator.SetFloat(MoveSpeed, Mathf.Abs(inMove));
 
