@@ -41,7 +41,7 @@ public class Weapon : MonoBehaviour
     private InputMaster input;
     private Vector2 mousePos;
     private bool inFire;
-   
+
     // that's a lot of variables for one skill...
     private AudioSource throwAudios;
     private TrailRenderer throwTrail;
@@ -143,10 +143,11 @@ public class Weapon : MonoBehaviour
         Utils.TimeDown(ref fireTime);
         #endregion
 
-        if (!player.Crouching)
+
+        spriteRenderer.enabled = true;
+        if (!thrown)
         {
-            spriteRenderer.enabled = true;
-            if (!thrown)
+            if (false)// !player.Crouching)
             {
                 #region Update default
                 throwTrail.emitting = false;
@@ -169,34 +170,35 @@ public class Weapon : MonoBehaviour
             }
             else
             {
-                #region Update when thrown
-                if (throwTime > 0.5f && (transform.position - player.transform.position).sqrMagnitude < 0.5f)
-                    Catch();
-
-                Vector2 vel;
-                if (throwTime > throwMaxTime)
-                {
-                    vel = (player.transform.position - transform.position).normalized * throwSpeed;
-                    throwTrail.emitting = false;
-                }
-                else
-                {
-                    vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
-                    vel += throwAddVel / (throwTime + 1f);
-                    throwTrail.emitting = true;
-                    ThrowCheckForColl();
-                }
-                throwTime += Time.deltaTime;
-
-                if (!Utils.TimeDown(ref throwFreeze))
-                    transform.position += (Vector3)(vel * Time.deltaTime);
-                #endregion
+                spriteRenderer.enabled = false;
             }
         }
         else
         {
-            spriteRenderer.enabled = false;
+            #region Update when thrown
+            if (throwTime > 0.5f && (transform.position - player.transform.position).sqrMagnitude < 0.5f)
+                Catch();
+
+            Vector2 vel;
+            if (throwTime > throwMaxTime)
+            {
+                vel = (player.transform.position - transform.position).normalized * throwSpeed;
+                throwTrail.emitting = false;
+            }
+            else
+            {
+                vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
+                vel += throwAddVel / (throwTime + 1f);
+                throwTrail.emitting = true;
+                ThrowCheckForColl();
+            }
+            throwTime += Time.deltaTime;
+
+            if (!Utils.TimeDown(ref throwFreeze))
+                transform.position += (Vector3)(vel * Time.deltaTime);
+            #endregion
         }
+
 
         #region Update all
         foreach (Ally set in party.allies)
