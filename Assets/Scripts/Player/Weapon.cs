@@ -147,7 +147,7 @@ public class Weapon : MonoBehaviour
         spriteRenderer.enabled = true;
         if (!thrown)
         {
-            if (false)// !player.Crouching)
+            if (!player.Crouching)
             {
                 #region Update default
                 throwTrail.emitting = false;
