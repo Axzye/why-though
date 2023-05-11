@@ -5,11 +5,7 @@ public abstract class Entity : MonoBehaviour, ITarget
     protected Vector2 startPos;
     public bool facingRight = true;
 
-
-    protected virtual void Awake()
-    {
-        startPos = transform.position;
-    }
+    protected abstract void Awake();
 
     public abstract bool Damage(DamageInfo inf);
 

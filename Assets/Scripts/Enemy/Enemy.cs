@@ -64,7 +64,7 @@ public class Enemy : Entity
     private static bool loaded;
     protected override void Awake()
     {
-        base.Awake();
+        startPos = transform.position;
 
         if (!loaded)
         {
