@@ -143,7 +143,7 @@ public class Player : Entity
 
     private void OnLoad(Level level, int _)
     {
-        transform.position = level.spawnPos[0];
+        lastTouchedGround = transform.position = startPos = level.spawnPos[0];
     }
 
     private void OnEnable() 
@@ -400,7 +400,7 @@ public class Player : Entity
                         slideStoredVel = speed * slideMult * Mathf.Round(inMove);
                         // Uncomment to store speed
                         // (broken, you can spam to gain infinite speed)
-                        // Mathf.Max(speed , Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
+                        // Mathf.Max(speed, Mathf.Abs(vel.x)) * slideMult * Mathf.Round(inMove);
                     }
                 }
             }
