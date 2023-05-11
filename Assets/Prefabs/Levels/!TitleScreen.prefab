@@ -1498,7 +1498,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b75fa4e10647e0408e638b76c80faec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nonGameLevel: 1
   defMusic: {fileID: 0}
+  spawnPos: []
 --- !u!114 &7275850118560418772
 MonoBehaviour:
   m_ObjectHideFlags: 0

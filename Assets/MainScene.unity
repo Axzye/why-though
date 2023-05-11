@@ -156,6 +156,7 @@ MonoBehaviour:
   - {fileID: 7275850118560418777, guid: fd68f6536e451c44d973afa000b75e70, type: 3}
   - {fileID: 8793076489487915296, guid: ab7e1360555a46d42b9b9c74c1e38a69, type: 3}
   - {fileID: 7804010276302500711, guid: 6609e8dcd1d1c5c489d141f6cddf9125, type: 3}
+  - {fileID: 4974802452994187140, guid: e7edb56809fc84a489dca2738e16dcd8, type: 3}
   game: {fileID: 5263669088785700140, guid: 6fae4a43d995c214b95622d2b4216900, type: 3}
   levelObj: {fileID: 0}
   gameObj: {fileID: 0}
