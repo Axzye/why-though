@@ -5366,8 +5366,11 @@ MonoBehaviour:
   maxFlyTime: 2
   setCoyoteTime: 0.08
   slopeCorrect: 0.5
-  slideMult: 1.5
+  slideMult: 1.6
   slideSpeedLoss: 0.2
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 9
   gCheck:
     serializedVersion: 2
     x: 0
@@ -15534,7 +15537,7 @@ MonoBehaviour:
   m_Intensity: 0
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
-  m_ApplyToSortingLayers: 00000000
+  m_ApplyToSortingLayers: 00000000cdcf975fb78f6bdc
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
