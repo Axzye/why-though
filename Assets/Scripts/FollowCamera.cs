@@ -4,7 +4,6 @@ public class FollowCamera : MonoBehaviour
 {
     public Camera cam;
     private static float shakeTime;
-    private Player player;
     private Rigidbody2D playerRb;
     private static Transform focus;
     private static float focusTime;
@@ -18,8 +17,7 @@ public class FollowCamera : MonoBehaviour
 
     private void Start()
     {
-        player = Player.Inst;
-        playerRb = player.GetComponent<Rigidbody2D>();
+        playerRb = Player.Inst.GetComponent<Rigidbody2D>();
         ResetPos();
     }
 
@@ -37,7 +35,7 @@ public class FollowCamera : MonoBehaviour
 
     private void ResetPos()
     {
-        Vector2 pos = player.transform.position;
+        Vector2 pos = Player.Inst.transform.position;
         transform.position = new(pos.x, Mathf.Max(pos.y, -2f), -10f);
     }
 

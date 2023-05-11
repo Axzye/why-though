@@ -48,7 +48,12 @@ public class MainManager : MonoSingleton<MainManager>
     {
         Destroy(levelObj);
         // TODO: ughhhhhh
-        if (index == 0)
+        // Load new scene
+        levelObj = Instantiate(levels[index]);
+        current = levelObj.GetComponent<Level>();
+        currentIndex = index;
+
+        if (current.nonGameLevel)
         {
             if (gameObj)
                 Destroy(gameObj);
@@ -58,11 +63,6 @@ public class MainManager : MonoSingleton<MainManager>
             if (!gameObj)
                 gameObj = Instantiate(game);
         }
-
-        // Load new scene
-        levelObj = Instantiate(levels[index]);
-        current = levelObj.GetComponent<Level>();
-        currentIndex = index;
 
         OnLoad?.Invoke(current, currentIndex);
     }
