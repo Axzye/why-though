@@ -3,7 +3,10 @@ using UnityEngine;
 public abstract class Entity : MonoBehaviour, ITarget
 {
     protected Vector2 startPos;
-    public bool facingRight = true;
+    [SerializeField]
+    protected bool facingRight = true;
+
+    public bool FacingRight { get => facingRight; }
 
     protected abstract void Awake();
 

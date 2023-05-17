@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : Entity
 {
@@ -40,6 +41,7 @@ public class Player : Entity
     public ParticleSystem fsFx;
     public BubbleShield shield;
     private Party party;
+    private Camera main;
     private SpriteRenderer srenderer;
     private Animator animator;
     private Rigidbody2D rb;
@@ -89,7 +91,7 @@ public class Player : Entity
     private float flyTime = 1f;
     private bool flying;
     private float dashCooldown, dashTime;
-    private bool dashDir;
+    private Vector2 dashDelta;
     private bool dashSpawnFxFrame;
 
     private float damageTime;
@@ -111,12 +113,20 @@ public class Player : Entity
     private bool[] inSkill = new bool[3];
     private bool inSkillA, inSkillAHeld;
     #endregion
+    #region Leftover from weapon
+    private Vector2 mousePos;
+    private float mouseAngle;
+    private bool facAngleRight;
+    #endregion
     // this doesn't fix anything...
     #region Properties
-    public bool Crouching { get { return crouching; } }
-    public float DamageTime { get { return damageTime; } }
-    public float IFrames { get { return iFrames; } }
-    public float ShieldTime { get { return shieldTime; } }
+    public bool Crouching { get => crouching; }
+    public float DamageTime { get => damageTime; }
+    public float IFrames { get => iFrames; }
+    public float ShieldTime { get => shieldTime; }
+    public Vector2 MousePos { get => mousePos; }
+    public float MouseAngle { get => mouseAngle; }
+    public bool FacAngleRight { get => facAngleRight; set => facAngleRight = value; }
     #endregion
 
     #region Initialize
@@ -127,6 +137,7 @@ public class Player : Entity
         Inst = this;
         print("Player loaded in");
 
+        main = Camera.main;
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<BoxCollider2D>();
         srenderer = playerBody.GetComponent<SpriteRenderer>();
@@ -146,9 +157,9 @@ public class Player : Entity
         lastTouchedGround = transform.position = startPos = level.spawnPos[0];
     }
 
-    private void OnEnable() 
-    { 
-        input.Player.Enable(); 
+    private void OnEnable()
+    {
+        input.Player.Enable();
         MainManager.OnLoad += OnLoad;
     }
 
@@ -180,6 +191,10 @@ public class Player : Entity
 
         if (input.Player.SkillA.triggered) inSkillA = true;
         inSkillAHeld = input.Player.SkillA.IsPressed();
+
+        mousePos = Mouse.current.position.ReadValue() - (Vector2)main.WorldToScreenPoint(transform.position);
+        facAngleRight = mousePos.x >= 0f;
+        mouseAngle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
         #endregion
     }
 
@@ -332,16 +347,7 @@ public class Player : Entity
                 {
                     Cut();
                 }
-                if (inSkillA)
-                {
-                    if (dashCooldown == 0f)
-                    {
-                        AudioManager.Play(clips[4]);
-                        dashTime = 0.15f;
-                        dashCooldown = 0.4f;
-                        dashDir = facingRight;
-                    }
-                }
+
                 break;
             case Mb.Leif:
                 if (Skill(2, 1))
@@ -355,6 +361,7 @@ public class Player : Entity
         #endregion
         #region Whatever SkillA is
         // ??
+
         flying = false;
         if (party.CurrentID == Mb.Vi
             && inSkillAHeld)
@@ -363,11 +370,9 @@ public class Player : Entity
                 UpdateFly();
         }
 
-        if (party.CurrentID == Mb.Kabbu)
-        {
-            if (Utils.TimeDown(ref dashTime))
-                UpdateDash();
-        }
+        if (Utils.TimeDown(ref dashTime))
+            UpdateDash();
+
         #endregion
         #region Update movement
         // Find target velocity
@@ -559,7 +564,7 @@ public class Player : Entity
 
             switch (type)
             {
-                case 0 when dashTime > 0f || sliding:
+                case 0 when sliding:
                     AudioManager.Play(clips[17]);
                     vel.x = (facingRight ? 1f : -1f) * 9f;
                     vel.y *= 0.6666f;
@@ -616,10 +621,10 @@ public class Player : Entity
 
         void UpdateDash()
         {
-            vel.x = dashDir ? 15f : -15f;
-            vel.y = 0f;
+            vel = dashDelta;
             gravity = 0f;
 
+            /*
             if (dashSpawnFxFrame)
             {
                 GameObject dt = GameManager.Spawn(dashTrailFx, transform.position);
@@ -627,26 +632,13 @@ public class Player : Entity
                 dashSpawnFxFrame = false;
             }
             else dashSpawnFxFrame = true;
-
-            Collider2D check = Physics2D.OverlapBox(transform.position,
-                new(0.6f, 0.85f), 0f, 1);
-            if (check)
-            {
-                vel = new(facingRight ? -4f : 4f, 6f);
-                dashTime = 0f;
-                noControlTime = 0.1f;
-                notOnGroundTime = 0.1f;
-                canEndJump = false;
-                FollowCamera.Shake(1f);
-                damageTime = 0.25f;
-                AudioManager.Play(clips[5]);
-            }
+            */
         }
         int GetAnimationState()
         {
             if (damageTime > 0f) return Hurt;
 
-            if (flying || dashTime > 0f) return SkillA;
+            if (flying) return SkillA;
 
             if (onGround)
             {
@@ -668,7 +660,7 @@ public class Player : Entity
     #region Internal only
     private void Cut()
     {
-        bool dir = dashTime > 0f ? facingRight : !weapon.Flipped;
+        bool dir = false ? facingRight : facAngleRight;
 
         GameManager.Spawn(swingFx, transform.position)
             .GetComponent<SpriteRenderer>().flipX = dir;
@@ -756,6 +748,7 @@ public class Player : Entity
 
         if (shieldTime > 0f)
         {
+            iFrames *= 0.5f;
             inf.damage = 0;
             AudioManager.Play(clips[10]);
         }
@@ -897,6 +890,7 @@ public class Player : Entity
         flyTime = maxFlyTime;
 
         noControlTime = 0.1f;
+        notOnGroundTime = 0.1f;
 
         canRecoil = true;
         canEndJump = false;
@@ -911,14 +905,14 @@ public class Player : Entity
         AudioManager.Play(clips[12]);
     }
 
-    public void ApplyRecoil(Vector2 push)
+    public void ApplyRecoil()
     {
         if (!canRecoil) return;
         canRecoil = false;
         canEndJump = false;
         Vector2 newVel = rb.velocity;
         newVel.y = 1f;
-        newVel += push.normalized * -4f;
+        newVel += mousePos.normalized * -4f;
         dashTime = 0f;
         rb.velocity = newVel;
         noControlTime = 0.1f;

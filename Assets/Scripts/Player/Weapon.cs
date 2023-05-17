@@ -31,15 +31,11 @@ public class Weapon : MonoBehaviour
     #endregion
     #region General vars
     private float fireTime;
-    private float angle;
-    private float actualAngle;
-    private float currentAngle;
+    private float visualAngle, visAnCurrent;
     private float offset;
-    private bool flipped;
     private float flash;
 
     private InputMaster input;
-    private Vector2 mousePos;
     private bool inFire;
 
     // that's a lot of variables for one skill...
@@ -48,7 +44,7 @@ public class Weapon : MonoBehaviour
     private bool thrown;
     private float throwTime;
     private float throwFreeze;
-    private Vector2 throwAngle;
+    private Vector2 throwDelta;
     private Vector2 throwAddVel;
     private int throwAmountHit;
     private float throwCatchSpin;
@@ -67,7 +63,6 @@ public class Weapon : MonoBehaviour
             return true;
         }
     }
-    public bool Flipped { get { return flipped; } }
     public float Flash { get { return flash; } }
     public bool Thrown { get { return thrown; } }
     #endregion
@@ -102,47 +97,40 @@ public class Weapon : MonoBehaviour
             return;
 
         inFire = input.Player.Fire.IsPressed();
-        mousePos = Mouse.current.position.ReadValue() - (Vector2)main.WorldToScreenPoint(transform.position);
-        angle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
-
-        flipped = Mathf.Abs(angle) > 90f;
 
         if (thrown)
         {
-            actualAngle += Time.deltaTime * 360f * 3f;
+            visualAngle += Time.deltaTime * 360f * 3f;
             visual.transform.localPosition = Vector3.zero;
-            visual.transform.rotation = Quaternion.AngleAxis(actualAngle, Vector3.forward);
+            visual.transform.rotation = Quaternion.AngleAxis(visualAngle, Vector3.forward);
         }
         else
         {
             float yOffset = -0.0625f;
             transform.localPosition = Vector3.up * yOffset;
 
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            transform.rotation = Quaternion.AngleAxis(player.MouseAngle, Vector3.forward);
 
             visual.transform.localPosition = 0.15f * offset * Vector2.left;
 
-            spriteRenderer.flipY = flipped;
-            visual.transform.rotation = Quaternion.AngleAxis(actualAngle + offset * (flipped ? -15f : 15f) + throwCatchSpin, Vector3.forward);
+            spriteRenderer.flipY = !player.FacAngleRight;
+            visual.transform.rotation = Quaternion.AngleAxis(visualAngle + offset * (player.FacAngleRight ? 15f : -15f) + throwCatchSpin, Vector3.forward);
 
-            actualAngle = Mathf.SmoothDampAngle(actualAngle, angle, ref currentAngle, 0.05f);
+            visualAngle = Mathf.SmoothDampAngle(visualAngle, player.MouseAngle, ref visAnCurrent, 0.05f);
         }
         #endregion
     }
 
     private void FixedUpdate()
     {
-        #region Yup
         if (current != party.CurrentAlly)
         {
             current = party.CurrentAlly;
             SwitchAlly();
         }
-        #endregion
         #region Update timers
         Utils.TimeDown(ref fireTime);
         #endregion
-
 
         spriteRenderer.enabled = true;
         if (!thrown)
@@ -187,7 +175,7 @@ public class Weapon : MonoBehaviour
             }
             else
             {
-                vel = throwAngle * (1f - throwTime * 2f) * throwSpeed;
+                vel = throwDelta * (1f - throwTime * 2f) * throwSpeed;
                 vel += throwAddVel / (throwTime + 1f);
                 throwTrail.emitting = true;
                 ThrowCheckForColl();
@@ -265,7 +253,7 @@ public class Weapon : MonoBehaviour
                         SpawnBullet(-12f + i * 8f + Random.Range(-3f, 3f), 1);
                 }
 
-                if (!player.Crouching) player.ApplyRecoil(mousePos);
+                if (!player.Crouching) player.ApplyRecoil();
                 break;
             case Mb.Leif:
                 break;
@@ -292,8 +280,9 @@ public class Weapon : MonoBehaviour
         if (player.Crouching)
             addAngle *= 0.5f;
 
-        proj.transform.rotation = Quaternion.AngleAxis(angle + addAngle, Vector3.forward);
-        proj.transform.position = transform.position + transform.right * 0.5f;
+        proj.transform.SetPositionAndRotation(
+            transform.position + transform.right * 0.5f,
+            Quaternion.AngleAxis(player.MouseAngle + addAngle, Vector3.forward));
 
         proj.SetActive(true);
     }
@@ -329,7 +318,7 @@ public class Weapon : MonoBehaviour
                 DamageInfo inf = new()
                 {
                     damage = throwAmountHit == 0 ? 2 : 1,
-                    addForce = throwAngle * throwKnockback + Vector2.up,
+                    addForce = throwDelta * throwKnockback + Vector2.up,
                     iFrames = 0.12f
                 };
 
@@ -351,9 +340,9 @@ public class Weapon : MonoBehaviour
 
     public void FlipCoin()
     {
-        GameObject obj = GameManager.Spawn(coin, player.transform.position, angle);
+        GameObject obj = GameManager.Spawn(coin, player.transform.position, player.MouseAngle);
         Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
-        obj.transform.rotation = Quaternion.AngleAxis(actualAngle, Vector3.forward);
+        obj.transform.rotation = Quaternion.AngleAxis(visualAngle, Vector3.forward);
         obj.transform.position += Vector3.up * 0.25f;
         rb.velocity = (Vector2)transform.right * 8f + Vector2.up * 6f + this.playerRb.velocity * 0.5f;
 
@@ -368,7 +357,7 @@ public class Weapon : MonoBehaviour
 
         throwTime = 0f;
         throwAmountHit = 0;
-        throwAngle = mousePos.normalized;
+        throwDelta = player.MousePos.normalized;
         throwAddVel = playerRb.velocity * 0.5f;
 
         spriteRenderer.sprite = bmSprite;
@@ -382,7 +371,7 @@ public class Weapon : MonoBehaviour
         transform.parent = player.transform;
 
         throwCatchSpin = -360f;
-        actualAngle = angle;
+        visualAngle = player.MouseAngle;
         if (throwAmountHit > 0) player.SpawnActionText(Mathf.Max(throwAmountHit - 1, 0), 0.5f);
 
         spriteRenderer.sprite = party.CurrentAlly.gunA;
