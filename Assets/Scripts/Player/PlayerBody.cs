@@ -21,10 +21,11 @@ public class PlayerBody : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // ??
         if (snapToFacing)
-            scale.x = target.x = player.FacingRight ? 1f : -1f;
-        else if (!weapon.Thrown) // ??
-            target.x = player.FacAngleRight ? 1f : -1f;
+            scale.x = target.x = player.FacingRight ? -1f : 1f;
+        else if (!weapon.Thrown)
+            target.x = player.FacAngleRight ? -1f : 1f;
 
         scale = Vector2.SmoothDamp(scale, target, ref current, 0.1f, Mathf.Infinity);
 
