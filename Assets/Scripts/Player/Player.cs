@@ -140,6 +140,7 @@ public class Player : Entity
         main = Camera.main;
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<BoxCollider2D>();
+        defCollBox = new(coll.offset, coll.size);
         srenderer = playerBody.GetComponent<SpriteRenderer>();
         animator = playerBody.GetComponent<Animator>();
         input = new();
@@ -147,13 +148,12 @@ public class Player : Entity
 
     private void Start()
     {
-        ResetPos();
         party = Party.Inst;
-        defCollBox = new(coll.offset, coll.size);
     }
 
     private void OnLoad(Level level, int _)
     {
+        ResetPos();
         lastTouchedGround = transform.position = startPos = level.spawnPos[0];
     }
 
