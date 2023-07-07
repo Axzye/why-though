@@ -48,12 +48,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd236c859b4e2984b841814547a2beb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  facing: 1
+  facingRight: 1
   hp:
     value: 4
     max: 4
   def: 0
-  contact:
+  contactHit:
     damage: 2
     knockback: 0
     alwaysKnockback: 0
@@ -66,6 +66,7 @@ MonoBehaviour:
   losRange: 5
   facePlayer: 1
   canDieToEnv: 1
+  stompable: 1
   body: {fileID: 2631302520074411111}
   speed: 1.5
   jumpForce: 7
