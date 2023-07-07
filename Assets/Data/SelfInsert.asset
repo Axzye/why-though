@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17e7ddf1794a2c0489b2a38631e98473, type: 3}
-  m_Name: NotAnOC
+  m_Name: SelfInsert
   m_EditorClassIdentifier: 
   _name: Axye
-  color: {r: 0.9529412, g: 0.59184384, b: 0.1568627, a: 1}
+  color: {r: 1, g: 0.6344456, b: 0.19339621, a: 1}
   sound:
-    clip: {fileID: 8300000, guid: e4085a2ddb877394ba8c036e7a80f3d5, type: 3}
+    clip: {fileID: 8300000, guid: c9b887be84538c0429c69bf257e0fa87, type: 3}
     clipRandom: []
     volume: 0.5
     pitch: 1
