@@ -7,11 +7,12 @@ public class Enemy : Entity
     [Header("Stats")]
     public Stat hp;
     public int def;
-    public DamageInfo contact;
+    public DamageInfo contactHit;
     public float kbMult = 1f;
     public float losRange = 4f;
     public bool facePlayer = true;
     public bool canDieToEnv = true;
+    public bool stompable = false;
     protected const int collLayers = 9;
     [System.NonSerialized]
     public float[] statusEffects;
@@ -30,15 +31,15 @@ public class Enemy : Entity
     private float upperBound;
     private Rect hCheck;
     private UINumberDamage storedDN;
+
+    private float iFrames;
+    private int dmgCombo;
+    private float damageTime;
+    private float hitstunTime;
     #endregion
     #region Properties
     protected Vector2 playerDistance;
     protected bool inLos;
-    #endregion
-    #region Timers
-    private float iFrames;
-    private int dmgCombo;
-    private float damageTime;
     #endregion
     #region Visual
     private float alpha;
@@ -178,11 +179,14 @@ public class Enemy : Entity
             alpha = -0.2f;
         }
 
-        if (contact.damage == 0f) return;
+        if (contactHit.damage == 0f) return;
         Collider2D check = Physics2D.OverlapBox((Vector2)transform.position + hCheck.position, hCheck.size, 0f, 64);
         if (check)
         {
-            Player.Inst.Damage(contact);
+            if (Player.Inst.DamageContact(transform.position, contactHit))
+            {
+                Damage(new() { damage = 0, iFrames = 0.5f });
+            }
         }
     }
 
@@ -266,7 +270,9 @@ public class Enemy : Entity
         if (iFrames > 0f && !inf.ignoreIFrames) return false;
 
         FollowCamera.Focus(transform);
+
         iFrames = inf.iFrames;
+        hitstunTime = inf.iFrames;
         inf.damage -= def;
 
         if (damageTime == 0f) dmgCombo = 0;
@@ -311,11 +317,11 @@ public class Enemy : Entity
         }
         storedDN.Set(0, inf);
 
-        hpBar.Set(hp);
-
         dmgCombo++;
         if (dmgCombo > 12) dmgCombo = 12;
-        damageTime = 0.2f;
+        damageTime = 0.25f;
+
+        hpBar.Set(hp);
         return true;
     }
 

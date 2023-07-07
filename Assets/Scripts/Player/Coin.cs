@@ -10,20 +10,21 @@ public class Coin : Projectile
     private List<Transform> hasHit = new();
     private Rigidbody2D rb;
     private int hitCounter;
-    private float deadTime;
+
+    private float cantHitTime;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.AddTorque(-6f, ForceMode2D.Impulse);
-        deadTime = 0.1f;
+        cantHitTime = 0.1f;
     }
 
     private void FixedUpdate()
     {
         time += Time.deltaTime;
         
-        if (!Utils.TimeDown(ref deadTime))
+        if (!Utils.TimeDown(ref cantHitTime))
         {
             Collider2D check = Physics2D.OverlapCircle(transform.position, this.check, 512);
             if (check)
@@ -93,10 +94,9 @@ public class Coin : Projectile
             {
                 if (proj.shotBy == Mb.Vi)
                 {
-                    
                     proj.inf.damage += 3;
                     proj.inf.crit = true;
-                    proj.time = 0f;
+                    proj.time -= 0.5f;
                 }
                 hit.rotation = rotation;
             }
@@ -110,7 +110,7 @@ public class Coin : Projectile
             newClip.pitch = Utils.Pow(1.0594631f, hitCounter);
             AudioManager.PlayAdv(newClip, transform.position);
 
-            deadTime = 0.1f;
+            cantHitTime = 0.1f;
             hitCounter++;
             if (hitCounter >= 4)
                 Die();

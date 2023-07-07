@@ -296,7 +296,18 @@ public class Player : Entity
         #region Jumps n' Stuff
         if (Utils.TimeDown(ref inJumpBuffer))
         {
-            TryJump();
+            int type = -1;
+            if (onGround || coyoteTime > 0f)
+                type = 0;
+            else if (wallSlideDir != 0)
+                type = 1;
+            else if (doubleJump)
+                type = 2;
+
+            if (type >= 0) 
+            {
+                Jump(type);
+            }
         }
 
         if (!inJump)
@@ -380,14 +391,7 @@ public class Player : Entity
 
         if (onGround)
         {
-            #region Reset vars
-            coyoteTime = setCoyoteTime;
-            canEndJump = true;
-            doubleJump = true;
-            canRecoil = true;
-            wallSlideDir = 0;
-            flyTime = maxFlyTime;
-            #endregion
+            GroundRefresh();
             #region Crouch n' Slide
             if (!crouching)
             {
@@ -546,17 +550,8 @@ public class Player : Entity
         }
         #endregion
         #region Just use a goddamn state machine
-        void TryJump()
+        void Jump(int type)
         {
-            int type;
-            if (onGround || coyoteTime > 0f)
-                type = 0;
-            else if (wallSlideDir != 0)
-                type = 1;
-            else if (doubleJump)
-                type = 2;
-            else return;
-
             notOnGroundTime = 0.1f;
             coyoteTime = 0f;
             inJumpBuffer = 0f;
@@ -576,7 +571,7 @@ public class Player : Entity
                     break;
                 case 1:
                     AudioManager.Play(clips[1]);
-                    vel.x = 6f * -wallSlideDir;
+                    vel.x = 7f * -wallSlideDir;
                     vel.y -= 1f;
                     // neutral jump (celeste reference ?!)
                     noControlTime = inMove == 0f ? 0.05f : 0.15f;
@@ -648,12 +643,22 @@ public class Player : Entity
             }
             else
             {
-                if (rb.velocity.y > 0f) return Jump;
+                if (rb.velocity.y > 0f) return Player.Jump;
                 else return wallSliding ? Wallslide : Fall;
             }
             return Idle;
         }
         #endregion
+    }
+
+    void GroundRefresh()
+    {
+        coyoteTime = setCoyoteTime;
+        canEndJump = true;
+        doubleJump = true;
+        canRecoil = true;
+        wallSlideDir = 0;
+        flyTime = maxFlyTime;
     }
 
     // Functions
@@ -722,8 +727,8 @@ public class Player : Entity
                 && party.tp >= skill.cost)
             {
                 skill.time = skill.cooldown;
-                //if (skill.cost > 0)
-                //    party.tp.Add(-skill.cost);
+                if (skill.cost > 0)
+                    party.tp.Add(-skill.cost);
                 return true;
             }
             else
@@ -737,6 +742,19 @@ public class Player : Entity
 
     #endregion
     #region General
+    public bool DamageContact(Vector2 pos, DamageInfo inf)
+    {
+        if (transform.position.y > pos.y && rb.velocity.y < -1f)
+        {
+            rb.velocity = new(rb.velocity.x, jumpForce);
+            canEndJump = false;
+            iFrames = 0.15f;
+            return true;
+        }
+        Damage(inf);
+        return false;
+    }
+
     public override bool Damage(DamageInfo inf)
     {
         if (iFrames > 0f && !inf.ignoreIFrames) return false;
